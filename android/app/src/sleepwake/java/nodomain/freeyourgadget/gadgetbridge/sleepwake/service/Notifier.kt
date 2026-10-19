@@ -13,7 +13,7 @@ import nodomain.freeyourgadget.gadgetbridge.sleepwake.ui.NightActivity
 
 object Notifier {
     private const val CH_SESSION = "sleepwake_session"
-    private const val CH_WAKE = "sleepwake_wake"
+    private const val CH_WAKE = "sleepwake_wake_v2"
     const val ID_SESSION = 7101
     const val ID_WAKE = 7102
     const val ID_RATING = 7103
@@ -27,12 +27,18 @@ object Notifier {
             NotificationChannel(CH_WAKE, "Wake up", NotificationManager.IMPORTANCE_HIGH).apply {
                 enableVibration(true)
                 setBypassDnd(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
         )
     }
 
     private fun openNight(ctx: Context) = PendingIntent.getActivity(
         ctx, 0, Intent(ctx, NightActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
+    private fun openNightFromWake(ctx: Context) = PendingIntent.getActivity(
+        ctx, 2, Intent(ctx, NightActivity::class.java).putExtra(NightActivity.EXTRA_FROM_WAKE, true),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
     /** Persistent notification of the running session: state, next action, last sync, connection. */
@@ -61,9 +67,11 @@ object Notifier {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setOngoing(true)
-            .setFullScreenIntent(openNight(ctx), true)
-            .setContentIntent(openNight(ctx))
-            .addAction(0, "I'm awake", SwAlarms.ackIntent(ctx))
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setFullScreenIntent(openNightFromWake(ctx), true)
+            .setContentIntent(openNightFromWake(ctx))
+            // works from the lock screen without unlocking the phone
+            .addAction(NotificationCompat.Action.Builder(0, "I'm awake", SwAlarms.ackIntent(ctx)).setAuthenticationRequired(false).build())
             .build()
         nm(ctx).notify(ID_WAKE, n)
     }

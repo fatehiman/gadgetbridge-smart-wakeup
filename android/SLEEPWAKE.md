@@ -73,3 +73,16 @@ The detector (what counts as "light sleep") is not fixed in the app. At each syn
 - **Stop service (day mode)** on the Night screen quits the app service and disconnects the watch (it is Gadgetbridge's own *Quit*). It is refused while a night is running. Open the app in the evening: it reconnects, and the checklist tells you if not.
 - During a night: the hard alarm (`setAlarmClock`) fires even if Android kills the process, and the tick alarms restart the service. **Force stop** (Settings → Apps → Force stop) cancels all alarms of the app until it is opened again, so do not do that during a night. On Samsung, also set the app to *Unrestricted* battery and add it to *Never sleeping apps*.
 - After a reboot the app starts by itself (Gadgetbridge's "start on boot", default on) and a running night is restored by `SwBootReceiver`.
+
+## Lock screen in the morning
+
+When the wake starts, the app posts a high-priority notification with a full-screen intent: the screen turns on and shows a big **I'm awake** button above the lock screen (no unlock needed). The notification also has an **I'm awake** action that works without unlocking. If the phone shows the checklist line "Wake screen over the lock screen NOT allowed", tap it and allow it (Android 14+ asks for this permission per app). The morning rating is a normal notification: answer it after unlocking.
+
+## Putting the sync settings in with adb (debug builds only)
+
+Instead of typing the 51-character token, a developer can write the settings from the PC (the file is read once, deleted, and the token goes into the encrypted storage):
+
+```bash
+printf '{"base_url":"https://gadget.peppasoft.com","token":"sw_..."}' | adb shell "run-as nodomain.freeyourgadget.gadgetbridge.sleepwake sh -c 'cat > files/provision.json'"
+```
+Open the Night screen once. Release builds ignore the file.

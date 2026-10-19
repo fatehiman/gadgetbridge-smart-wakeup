@@ -92,6 +92,16 @@ class NightActivity : AbstractGBActivity() {
     private fun build(): View {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(12), dp(16), dp(24)) }
 
+        awake = Button(this).apply {
+            text = "I'm awake"
+            textSize = 26f
+            setOnClickListener {
+                NightSessionManager.acknowledge(this@NightActivity)
+                if (intent.getBooleanExtra(EXTRA_FROM_WAKE, false)) finish() else refreshUi()
+            }
+        }
+        root.addView(awake, 0, LinearLayout.LayoutParams(-1, dp(120)).apply { bottomMargin = dp(8) })
+
         status = label("", 15f)
         root.addView(status)
 
@@ -123,12 +133,6 @@ class NightActivity : AbstractGBActivity() {
 
         startStop = Button(this).apply { setOnClickListener { onStartStop() } }
         root.addView(startStop, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(16) })
-
-        awake = Button(this).apply {
-            text = "I'm awake"
-            setOnClickListener { NightSessionManager.acknowledge(this@NightActivity); refreshUi() }
-        }
-        root.addView(awake, LinearLayout.LayoutParams(-1, dp(72)).apply { topMargin = dp(8) })
 
         root.addView(Button(this).apply {
             text = "Settings (sync, detector, behavior)"
@@ -189,6 +193,11 @@ class NightActivity : AbstractGBActivity() {
         val notifOk = Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         list += Check(notifOk, if (notifOk) "Notifications allowed" else "Notifications NOT allowed. Tap to allow.") {
             if (Build.VERSION.SDK_INT >= 33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val fsi = Build.VERSION.SDK_INT < 34 || nm.canUseFullScreenIntent()
+        list += Check(fsi, if (fsi) "Wake screen over the lock screen: allowed" else "Wake screen over the lock screen NOT allowed. Tap to allow (else you must unlock to stop the alarm).") {
+            if (Build.VERSION.SDK_INT >= 34) startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
         }
         val exact = SwAlarms.canScheduleExact(this)
         list += Check(exact, if (exact) "Exact alarms allowed" else "Exact alarms NOT allowed. Tap to allow (the wake alarm may be late without it).") {
@@ -286,5 +295,9 @@ class NightActivity : AbstractGBActivity() {
             NightSessionManager.start(this)
             refreshUi()
         }
+    }
+
+    companion object {
+        const val EXTRA_FROM_WAKE = "from_wake"
     }
 }

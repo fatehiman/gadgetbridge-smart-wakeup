@@ -17,9 +17,13 @@ enum class Fallback(val id: String) {
 }
 
 /** All settings of the module. The API token is kept in EncryptedSharedPreferences (Keystore backed). */
-class SwSettings(context: Context) {
+class SwSettings(context: Context, skipProvision: Boolean = false) {
     private val ctx = context.applicationContext
     private val p: SharedPreferences = ctx.getSharedPreferences("sleepwake_prefs", Context.MODE_PRIVATE)
+
+    init {
+        if (!skipProvision) Provision.applyIfPresent(ctx) // debug builds only
+    }
 
     // ---- night ----
     var targetMinutes: Int

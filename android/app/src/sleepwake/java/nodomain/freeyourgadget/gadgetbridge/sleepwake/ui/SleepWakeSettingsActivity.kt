@@ -79,6 +79,12 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
             }
         }
 
+        override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            listView.clipToPadding = false
+            listView.padBelowActionBar(requireActivity())
+        }
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             val settings = SwSettings(requireContext())
             preferenceManager.preferenceDataStore = Store(settings)

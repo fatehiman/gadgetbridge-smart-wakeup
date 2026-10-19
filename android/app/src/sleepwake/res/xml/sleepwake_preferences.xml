@@ -5,8 +5,8 @@
     <PreferenceCategory android:title="Night loop">
         <SwitchPreferenceCompat
             android:key="never_wake_early"
-            android:title="Data only: never wake early"
-            android:summary="Off (normal): wake at light sleep inside the window, at the latest at its end. On: wake only at the target time." />
+            android:title="Don't wake me early (record only)"
+            android:summary="Off (recommended): you are woken at the best light-sleep moment inside your wake window, and at the latest at its end. On: the app only records, and wakes you exactly at the target time, never earlier." />
         <EditTextPreference
             android:key="fetch_interval_min"
             android:title="Fetch interval (minutes)"
@@ -14,7 +14,7 @@
             app:useSimpleSummaryProvider="true" />
         <ListPreference
             android:key="monitor_wake_at"
-            android:title="Monitor-only wakes at"
+            android:title="When 'don't wake me early' is on, wake at"
             android:entries="@array/sw_monitor_wake_names"
             android:entryValues="@array/sw_monitor_wake_values"
             app:useSimpleSummaryProvider="true" />
