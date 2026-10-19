@@ -156,4 +156,36 @@ class GadgetTest extends TestCase
         $this->assertSame('7', Settings::get('retention_days_logs'));
         $this->post('/settings', ['timezone' => 'Nope/Zone', 'retention_days_data' => 30, 'retention_days_logs' => 7])->assertSessionHasErrors('timezone');
     }
+
+    private function analyzeToken(): string
+    {
+        $t = 'sw_analyze_token';
+        DB::table('api_tokens')->insert(['name' => 'a', 'token_hash' => hash('sha256', $t), 'ability' => 'analyze', 'created_at' => now(), 'updated_at' => now()]);
+
+        return $t;
+    }
+
+    public function test_analyze_token_reads_export_and_writes_config_but_cannot_ingest(): void
+    {
+        $this->ingest($this->batch())->assertOk();
+        $a = $this->analyzeToken();
+        $this->withToken($a)->postJson('/api/v1/ingest', $this->batch())->assertStatus(401);
+        $r = $this->withToken($a)->getJson('/api/v1/export?days=3')->assertOk();
+        $this->assertCount(1, $r->json('sessions'));
+        $this->assertCount(2, $r->json('samples'));
+        $this->assertSame('u-1', $r->json('samples.0.session_uuid'));
+        $this->withToken($this->token)->getJson('/api/v1/export')->assertStatus(401); // phone token cannot read everything
+    }
+
+    public function test_detector_config_roundtrip_and_validation(): void
+    {
+        $a = $this->analyzeToken();
+        $this->withToken($this->token)->getJson('/api/v1/config')->assertOk()->assertJson(['version' => 0, 'config' => null]);
+        $cfg = ['detector' => 'scored_v1', 'params' => ['threshold' => 1.5, 'weights' => ['hr_delta' => 0.2]]];
+        $this->withToken($this->token)->putJson('/api/v1/config', ['config' => $cfg])->assertStatus(401); // phone cannot write
+        $this->withToken($a)->putJson('/api/v1/config', ['config' => ['detector' => 'evil']])->assertStatus(422);
+        $this->withToken($a)->putJson('/api/v1/config', ['config' => $cfg, 'note' => 'first'])->assertOk()->assertJson(['version' => 1]);
+        $this->withToken($this->token)->getJson('/api/v1/config')->assertOk()->assertJson(['version' => 1, 'config' => $cfg, 'note' => 'first']);
+        $this->withToken($a)->getJson('/api/v1/config/history')->assertOk()->assertJsonCount(1, 'history');
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ConfigController;
 use App\Support\Cleanup;
 use App\Support\Settings;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class SettingsController extends Controller
                 'logs' => DB::table('ingest_logs')->count(),
             ],
             'newToken' => session('new_token'),
+            'configs' => DB::table('detector_configs')->orderByDesc('id')->limit(10)->get(),
         ]);
     }
 
@@ -60,14 +62,27 @@ class SettingsController extends Controller
 
     public function createToken(Request $r)
     {
-        $c = $r->validate(['name' => 'required|string|max:100']);
+        $c = $r->validate(['name' => 'required|string|max:100', 'ability' => 'required|in:ingest,analyze']);
         $plain = 'sw_'.Str::random(48);
         DB::table('api_tokens')->insert([
-            'name' => $c['name'], 'token_hash' => hash('sha256', $plain), 'ability' => 'ingest',
+            'name' => $c['name'], 'token_hash' => hash('sha256', $plain), 'ability' => $c['ability'],
             'created_at' => now(), 'updated_at' => now(),
         ]);
 
         return back()->with('new_token', $plain);
+    }
+
+    /** Manual detector config (the analysis normally pushes it through the API). */
+    public function saveConfig(Request $r)
+    {
+        $r->validate(['config_json' => 'required|string|max:20000', 'note' => 'nullable|string|max:1000']);
+        $cfg = json_decode($r->input('config_json'), true);
+        if ($err = AppHttp\Controllers\Api\ConfigController::validateConfig($cfg)) {
+            return back()->withErrors(['config_json' => $err])->withInput();
+        }
+        DB::table('detector_configs')->insert(['note' => $r->input('note') ?: null, 'config' => json_encode($cfg)]);
+
+        return back()->with('ok', 'Detector config saved. The phone downloads it at the next sync.');
     }
 
     public function revokeToken(int $id)

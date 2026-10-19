@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('settings', [SettingsController::class, 'save'])->name('settings.save');
     Route::post('settings/cleanup', [SettingsController::class, 'cleanup'])->name('settings.cleanup');
+    Route::post('settings/config', [SettingsController::class, 'saveConfig'])->name('settings.config');
     Route::post('settings/tokens', [SettingsController::class, 'createToken'])->name('tokens.create');
     Route::post('settings/tokens/{id}/revoke', [SettingsController::class, 'revokeToken'])->name('tokens.revoke');
 });

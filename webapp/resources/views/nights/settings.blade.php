@@ -42,14 +42,15 @@
     <form class="row" method="post" action="{{ route('tokens.create') }}" style="margin:12px 0">
         @csrf
         <div><label for="tn">Name</label><input id="tn" name="name" placeholder="e.g. my phone" required></div>
+        <div><label for="ta">Type</label><select id="ta" name="ability"><option value="ingest">ingest (phone: upload + get config)</option><option value="analyze">analyze (read all data, write config)</option></select></div>
         <div class="auto"><button class="btn primary"><svg class="ic"><use href="/assets/icons.svg#i-plus"/></svg> Create token</button></div>
     </form>
     <div class="table-wrap"><table>
-        <thead><tr><th>Name</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Type</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr></thead>
         <tbody>
         @forelse ($tokens as $t)
             <tr>
-                <td>{{ $t->name }}</td><td>{{ Fmt::t(strtotime($t->created_at), $tz) }}</td>
+                <td>{{ $t->name }}</td><td>{{ $t->ability }}</td><td>{{ Fmt::t(strtotime($t->created_at), $tz) }}</td>
                 <td>{{ $t->last_used_at ? Fmt::t(strtotime($t->last_used_at), $tz) : 'never' }}</td>
                 <td>{!! $t->revoked_at ? '<span class="pill c5">revoked</span>' : '<span class="pill c2">active</span>' !!}</td>
                 <td>@unless ($t->revoked_at)
@@ -58,7 +59,29 @@
                 @endunless</td>
             </tr>
         @empty
-            <tr><td colspan="5" class="muted">No tokens yet.</td></tr>
+            <tr><td colspan="6" class="muted">No tokens yet.</td></tr>
+        @endforelse
+        </tbody>
+    </table></div>
+</div>
+
+<div class="card">
+    <h2>Detector config (what the phone uses to find light sleep)</h2>
+    <p class="small muted">The phone downloads the newest config at each sync and before a night starts. Normally the analysis pushes it through the API. You can also paste JSON here.</p>
+    <form method="post" action="{{ route('settings.config') }}">
+        @csrf
+        <p><label for="cj">Config JSON</label><textarea id="cj" name="config_json" rows="5">{{ old('config_json', $configs->first() ? $configs->first()->config : '') }}</textarea>
+            @error('config_json')<div class="errors">{{ $message }}</div>@enderror</p>
+        <p><label for="cn">Note</label><input id="cn" name="note" maxlength="1000"></p>
+        <button class="btn primary">Save as new version</button>
+    </form>
+    <div class="table-wrap"><table>
+        <thead><tr><th>Version</th><th>Saved</th><th>Note</th></tr></thead>
+        <tbody>
+        @forelse ($configs as $cf)
+            <tr><td>{{ $cf->id }}</td><td>{{ Fmt::t(strtotime($cf->created_at), $tz) }}</td><td class="small">{{ $cf->note }}<details><summary>JSON</summary><pre>{{ $cf->config }}</pre></details></td></tr>
+        @empty
+            <tr><td colspan="3" class="muted">No config yet: the phone uses its built-in defaults.</td></tr>
         @endforelse
         </tbody>
     </table></div>
