@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
-class WidgetTest extends TestCase
+class GadgetTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -55,8 +55,9 @@ class WidgetTest extends TestCase
 
     public function test_ingest_is_idempotent(): void
     {
-        $this->ingest($this->batch())->assertOk()->assertJson(['accepted' => ['sessions' => 1, 'samples' => 2, 'events' => 1], 'duplicates' => 0]);
-        $this->ingest($this->batch())->assertOk()->assertJson(['duplicates' => 4]);
+        $b = $this->batch();
+        $this->ingest($b)->assertOk()->assertJson(['accepted' => ['sessions' => 1, 'samples' => 2, 'events' => 1], 'duplicates' => 0]);
+        $this->ingest($b)->assertOk()->assertJson(['duplicates' => 4]);
         $this->assertSame(2, DB::table('samples')->count());
         $this->assertSame(1, DB::table('events')->count());
         $this->assertSame(1, DB::table('sleep_sessions')->count());

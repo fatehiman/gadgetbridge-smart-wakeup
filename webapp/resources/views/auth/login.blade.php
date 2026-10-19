@@ -3,7 +3,7 @@
 @section('content')
 <div class="login-wrap card">
     <div class="brand-logo"><svg class="ic" style="width:32px;height:32px"><use href="/assets/icons.svg#i-moon"/></svg></div>
-    <h1 style="text-align:center">Widget</h1>
+    <h1 style="text-align:center">Gadget</h1>
     <form method="post" action="{{ route('login') }}">
         @csrf
         <p><label for="email">Email</label><input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus>

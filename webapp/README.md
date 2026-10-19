@@ -1,4 +1,4 @@
-# Widget — SleepWake webapp
+# Gadget — SleepWake webapp
 
 Laravel 13 + Blade + MySQL. Receives sleep data from the Android app (Gadgetbridge fork) and shows it as graphs.
 Single owner, personal use. Theme: "Morning Pastel" (light colors, from the personal-gallery project).
@@ -16,7 +16,7 @@ composer install
 cp .env.example .env && php artisan key:generate
 touch database/database.sqlite
 php artisan migrate --seed          # seed = 14 fake nights (never on production)
-printf 'a-long-password\n' | php artisan widget:user me@example.com
+printf 'a-long-password\n' | php artisan gadget:user me@example.com
 php artisan serve
 php artisan test
 ```
@@ -38,9 +38,9 @@ Everything else (time zone, cleanup days) is on the **Settings** page and stored
 
 | Command | What it does |
 |---|---|
-| `widget:user {email}` | create/update the owner (password from stdin) |
-| `widget:token {name}` | create an API token (shown once). `--revoke=ID` revokes one |
-| `widget:cleanup` | delete old data and logs now. `--data-days=N --log-days=N` override the settings |
+| `gadget:user {email}` | create/update the owner (password from stdin) |
+| `gadget:token {name}` | create an API token (shown once). `--revoke=ID` revokes one |
+| `gadget:cleanup` | delete old data and logs now. `--data-days=N --log-days=N` override the settings |
 
 Tokens can also be created and revoked on the Settings page.
 
@@ -51,7 +51,7 @@ On the **Settings** page you set two numbers of days (default **90** each, `0` =
 - **Data**: samples, events and nights older than N days.
 - **Logs**: the ingest request log and `storage/logs/*.log` files older than N days.
 
-`php artisan schedule:run` (cron, every minute) runs `widget:cleanup` every day at 03:30. There is also a "Clean up now" button.
+`php artisan schedule:run` (cron, every minute) runs `gadget:cleanup` every day at 03:30. There is also a "Clean up now" button.
 
 ## API (v1, `Authorization: Bearer <token>`)
 
@@ -67,7 +67,7 @@ On the **Settings** page you set two numbers of days (default **90** each, `0` =
 Test:
 
 ```bash
-curl -H "Authorization: Bearer sw_..." https://widget.peppasoft.com/api/v1/ping
+curl -H "Authorization: Bearer sw_..." https://gadget.peppasoft.com/api/v1/ping
 ```
 
 ## Pages
@@ -76,25 +76,25 @@ Nights list (date filter) · Night detail (HR + movement charts, wake window ban
 Trends (week / month / custom) · Export (CSV or JSON, combined or one file per night; columns are listed on the page) ·
 Settings (time zone, cleanup days, tokens, devices, last ingest requests).
 
-## Production (ger1, `widget.peppasoft.com`)
+## Production (ger1, `gadget.peppasoft.com`)
 
 | Fact | Value |
 |---|---|
-| Virtual server / user | `widget.peppasoft.com` / `widget` (Virtualmin), Cloudflare in front |
-| App | `/mnt/ger_hd1/www/widget/app` (mode 710), docroot `app/public` |
+| Virtual server / user | `gadget.peppasoft.com` / `gadget` (Virtualmin), Cloudflare in front |
+| App | `/mnt/ger_hd1/www/gadget/app` (mode 710), docroot `app/public` |
 | PHP | FPM pool, PHP 8.4 |
-| Database | MySQL `widget`, user `widget`, random password (only in `app/.env` and `/root/.widget-db-pass` on the server) |
-| Cron | `/etc/cron.d/widget` → `schedule:run` every minute |
-| Health | `https://widget.peppasoft.com/up` → 200 |
+| Database | MySQL `gadget`, user `gadget`, random password (only in `app/.env` and `/root/.gadget-db-pass` on the server) |
+| Cron | `/etc/cron.d/gadget` → `schedule:run` every minute |
+| Health | `https://gadget.peppasoft.com/up` → 200 |
 
 One-time setup (already done):
 
 ```bash
-virtualmin enable-feature --domain widget.peppasoft.com --mysql
-virtualmin modify-web --domain widget.peppasoft.com --mode fpm
-virtualmin modify-web --domain widget.peppasoft.com --php-version 8.4      # separate call
-virtualmin modify-web --domain widget.peppasoft.com --document-dir app/public
-virtualmin modify-database-pass --domain widget.peppasoft.com --type mysql --pass '<random>'
+virtualmin enable-feature --domain gadget.peppasoft.com --mysql
+virtualmin modify-web --domain gadget.peppasoft.com --mode fpm
+virtualmin modify-web --domain gadget.peppasoft.com --php-version 8.4      # separate call
+virtualmin modify-web --domain gadget.peppasoft.com --document-dir app/public
+virtualmin modify-database-pass --domain gadget.peppasoft.com --type mysql --pass '<random>'
 ```
 
 Update: commit, then `bash deploy/deploy.sh` from the repo root. It backs up the app and DB, keeps `.env` and `storage/`,
@@ -104,8 +104,8 @@ runs `composer install --no-dev`, `migrate`, `optimize`, flushes this pool's opc
 Create the owner on the server:
 
 ```bash
-su -s /bin/bash widget -c "cd /mnt/ger_hd1/www/widget/app && php8.4 artisan widget:user you@example.com" <<< 'a-long-password'
-su -s /bin/bash widget -c "cd /mnt/ger_hd1/www/widget/app && php8.4 artisan widget:token phone"
+su -s /bin/bash gadget -c "cd /mnt/ger_hd1/www/gadget/app && php8.4 artisan gadget:user you@example.com" <<< 'a-long-password'
+su -s /bin/bash gadget -c "cd /mnt/ger_hd1/www/gadget/app && php8.4 artisan gadget:token phone"
 ```
 
 Run behind HTTPS only (Cloudflare + Apache here). No queue worker is required.

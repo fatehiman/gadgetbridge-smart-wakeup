@@ -33,7 +33,7 @@ class ExportController extends Controller
         $sessions = DB::table('sleep_sessions')->join('devices', 'devices.id', '=', 'sleep_sessions.device_id')
             ->whereBetween('started_at', [$from, $to])->orderBy('started_at')
             ->get(['sleep_sessions.*', 'devices.external_id as device']);
-        $name = "widget-{$c['from']}_{$c['to']}";
+        $name = "gadget-{$c['from']}_{$c['to']}";
 
         if ($c['split'] === 'combined') {
             $parts = $this->build($sessions, $from, $to);

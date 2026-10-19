@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#eef5ff">
-    <title>@yield('title', 'Widget') · Widget</title>
+    <title>@yield('title', 'Gadget') · Gadget</title>
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="{{ $v('app.css') }}">
     @stack('head')
@@ -19,7 +19,7 @@
     <header class="topbar">
         <a class="brand" href="{{ route('nights') }}">
             <span class="brand-logo"><svg class="ic"><use href="{{ $icons }}#i-moon"/></svg></span>
-            <span>Widget</span>
+            <span>Gadget</span>
         </a>
         <nav class="mainnav">
             @foreach ([['nights', 'moon', 'Nights', 'nights*'], ['trends', 'trending-up', 'Trends', 'trends'], ['export', 'download', 'Export', 'export*'], ['settings', 'settings', 'Settings', 'settings*']] as [$route, $icon, $label, $pattern])
