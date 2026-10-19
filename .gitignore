@@ -1,0 +1,10 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+# Android (future)
+android/**/build/
+android/local.properties
+*.keystore
+*.jks
