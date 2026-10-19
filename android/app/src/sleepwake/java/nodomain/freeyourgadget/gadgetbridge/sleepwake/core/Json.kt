@@ -1,10 +1,122 @@
 package nodomain.freeyourgadget.gadgetbridge.sleepwake.core
 
-/** Tiny JSON writer for maps/lists/numbers/strings/booleans/null. Pure Kotlin, so it also runs in unit tests. */
 /** Ready-made JSON text that is embedded as is. */
 class RawJson(val text: String)
 
+/** Tiny JSON reader/writer for maps/lists/numbers/strings/booleans/null. Pure Kotlin, so it also runs in unit tests. */
 object Json {
+    /** Parses JSON into Map / List / Double / Long / String / Boolean / null. Throws IllegalArgumentException on bad input. */
+    fun parse(text: String): Any? {
+        val p = Parser(text)
+        val v = p.value()
+        p.skipWs()
+        require(p.i == text.length) { "trailing data at ${p.i}" }
+        return v
+    }
+
+    private class Parser(val s: String) {
+        var i = 0
+
+        fun skipWs() {
+            while (i < s.length && s[i].isWhitespace()) i++
+        }
+
+        fun value(): Any? {
+            skipWs()
+            require(i < s.length) { "unexpected end" }
+            return when (val c = s[i]) {
+                '{' -> obj()
+                '[' -> arr()
+                '"' -> str()
+                't' -> lit("true", true)
+                'f' -> lit("false", false)
+                'n' -> lit("null", null)
+                else -> if (c == '-' || c.isDigit()) num() else throw IllegalArgumentException("unexpected '$c' at $i")
+            }
+        }
+
+        private fun lit(word: String, v: Any?): Any? {
+            require(s.startsWith(word, i)) { "bad literal at $i" }
+            i += word.length
+            return v
+        }
+
+        private fun num(): Any {
+            val st = i
+            if (s[i] == '-') i++
+            while (i < s.length && (s[i].isDigit() || s[i] in ".eE+-")) i++
+            val t = s.substring(st, i)
+            return t.toLongOrNull() ?: t.toDouble()
+        }
+
+        private fun str(): String {
+            i++ // opening quote
+            val sb = StringBuilder()
+            while (true) {
+                require(i < s.length) { "unterminated string" }
+                val c = s[i++]
+                if (c == '"') return sb.toString()
+                if (c != BACKSLASH) {
+                    sb.append(c)
+                    continue
+                }
+                when (val e = s[i++]) {
+                    'n' -> sb.append('\n')
+                    't' -> sb.append('\t')
+                    'r' -> sb.append('\r')
+                    'b' -> sb.append('\b')
+                    'f' -> sb.append('\u000c')
+                    'u' -> {
+                        sb.append(s.substring(i, i + 4).toInt(16).toChar())
+                        i += 4
+                    }
+                    else -> sb.append(e)
+                }
+            }
+        }
+
+        private fun arr(): List<Any?> {
+            i++
+            val out = mutableListOf<Any?>()
+            skipWs()
+            if (s[i] == ']') {
+                i++
+                return out
+            }
+            while (true) {
+                out += value()
+                skipWs()
+                val c = s[i++]
+                if (c == ']') return out
+                require(c == ',') { "expected , at ${i - 1}" }
+            }
+        }
+
+        private fun obj(): Map<String, Any?> {
+            i++
+            val out = linkedMapOf<String, Any?>()
+            skipWs()
+            if (s[i] == '}') {
+                i++
+                return out
+            }
+            while (true) {
+                skipWs()
+                require(s[i] == '"') { "expected key at $i" }
+                val k = str()
+                skipWs()
+                require(s[i++] == ':') { "expected : at ${i - 1}" }
+                out[k] = value()
+                skipWs()
+                val c = s[i++]
+                if (c == '}') return out
+                require(c == ',') { "expected , at ${i - 1}" }
+            }
+        }
+    }
+
+    private const val BACKSLASH = '\\'
+
     fun encode(v: Any?): String = StringBuilder().also { write(it, v) }.toString()
 
     private fun write(sb: StringBuilder, v: Any?) {
@@ -49,7 +161,7 @@ object Json {
         for (c in s) {
             when (c) {
                 '"' -> sb.append("\\\"")
-                '\\' -> sb.append("\\\\")
+                BACKSLASH -> sb.append("\\\\")
                 '\n' -> sb.append("\\n")
                 '\r' -> sb.append("\\r")
                 '\t' -> sb.append("\\t")

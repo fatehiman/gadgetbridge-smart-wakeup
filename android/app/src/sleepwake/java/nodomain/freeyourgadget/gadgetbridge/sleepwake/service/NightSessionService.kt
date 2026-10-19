@@ -143,6 +143,8 @@ class NightSessionService : Service() {
             session.uuid, if (ok) "fetch_finished" else "fetch_failed",
             mapOf(
                 "took_ms" to took, "samples" to samples.size, "max_sample_ts" to maxTs,
+                "hr_samples" to samples.count { it.heartRate != null }, "stage_samples" to samples.count { it.sleepStage != null },
+                "move_samples" to samples.count { (it.movement ?: 0) > 0 },
                 "latency_s" to maxTs?.let { nowS - it }, "reason" to if (ok) null else "timeout",
             ),
         )

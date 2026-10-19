@@ -31,6 +31,7 @@ import nodomain.freeyourgadget.gadgetbridge.sleepwake.data.SwSettings
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.DeviceAccess
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.NightSessionManager
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.SwAlarms
+import nodomain.freeyourgadget.gadgetbridge.sleepwake.sync.ServerSync
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,7 +46,6 @@ class NightActivity : AbstractGBActivity() {
     private lateinit var timeButton: Button
     private lateinit var tolText: TextView
     private lateinit var tolSeek: SeekBar
-    private lateinit var modeGroup: RadioGroup
     private lateinit var checklist: LinearLayout
     private lateinit var status: TextView
     private lateinit var startStop: Button
@@ -115,14 +115,7 @@ class NightActivity : AbstractGBActivity() {
         }
         root.addView(tolSeek)
 
-        root.addView(label("Mode", 14f, true))
-        modeGroup = RadioGroup(this).apply {
-            addView(RadioButton(context).apply { id = 1; text = "Monitor only (record, one wake at the target time)" })
-            addView(RadioButton(context).apply { id = 2; text = "Smart wake (light sleep inside the window, deadline guaranteed)" })
-            check(if (settings.mode == Mode.SMART_WAKE) 2 else 1)
-            setOnCheckedChangeListener { _, id -> settings.mode = if (id == 2) Mode.SMART_WAKE else Mode.MONITOR_ONLY; updateTolText() }
-        }
-        root.addView(modeGroup)
+        root.addView(label("Always on: the watch is recorded all night, you are woken at the first light-sleep moment inside the window, and at the latest at the end of the window.", 13f))
 
         root.addView(label("Pre-sleep checklist", 14f, true))
         checklist = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -141,7 +134,7 @@ class NightActivity : AbstractGBActivity() {
             text = "Settings (sync, detector, behavior)"
             setOnClickListener { startActivity(Intent(this@NightActivity, SleepWakeSettingsActivity::class.java)) }
         })
-        inputs = listOf(timeButton, tolSeek, modeGroup)
+        inputs = listOf(timeButton, tolSeek)
         return ScrollView(this).apply { addView(root) }
     }
 
@@ -161,7 +154,7 @@ class NightActivity : AbstractGBActivity() {
         val tol = settings.toleranceMin
         val lo = timeText(((t - tol) % 1440 + 1440) % 1440)
         val hi = timeText((t + tol) % 1440)
-        tolText.text = if (settings.mode == Mode.SMART_WAKE) "Tolerance: ±$tol min  (window $lo – $hi)" else "Tolerance: ±$tol min  (not used for the wake in monitor-only mode)"
+        tolText.text = "Max range: ±$tol min  (window $lo – $hi)" + if (settings.neverWakeEarly) "  [data-only: no early wake]" else ""
     }
 
     // ---------------- checklist ----------------
@@ -208,7 +201,6 @@ class NightActivity : AbstractGBActivity() {
         tolSeek.progress = settings.toleranceMin
         updateTolText()
         inputs.forEach { it.isEnabled = active == null }
-        for (i in 0 until modeGroup.childCount) modeGroup.getChildAt(i).isEnabled = active == null
 
         checklist.removeAllViews()
         for (c in checks()) {
@@ -233,7 +225,7 @@ class NightActivity : AbstractGBActivity() {
                 active.wakeTs != null -> "WAKING YOU NOW (${active.wakeReason})"
                 else -> "Session running since ${tf(active.startedAt)}"
             }
-            status.text = "$state\nMode: ${active.mode.replace('_', ' ')}, wake alarm at ${tf(active.fireAt)}\nlast fetch: " + (store.lastEventOfType(active.uuid, "fetch_finished")?.let { fmt.format(Date(it.ts)) } ?: "none yet")
+            status.text = "$state\nWindow ${tf(active.windowStart)} – ${tf(active.deadline)}, latest wake ${tf(active.fireAt)}\nlast fetch: " + (store.lastEventOfType(active.uuid, "fetch_finished")?.let { fmt.format(Date(it.ts)) } ?: "none yet")
             startStop.text = "Stop session"
             awake.visibility = if (active.wakeTs != null && active.ackedAt == null) View.VISIBLE else View.GONE
         }
@@ -269,7 +261,16 @@ class NightActivity : AbstractGBActivity() {
 
     private fun startSession() {
         settings.deviceAddress = DeviceAccess.device(this)?.address ?: ""
-        NightSessionManager.start(this)
-        refreshUi()
+        if (BuildConfig.INTERNET_ACCESS && settings.syncEnabled) {
+            // get the newest detector config first (short timeout, harmless if it fails)
+            startStop.isEnabled = false
+            Thread {
+                ServerSync(this).fetchConfig(quick = true)
+                runOnUiThread { startStop.isEnabled = true; NightSessionManager.start(this); refreshUi() }
+            }.start()
+        } else {
+            NightSessionManager.start(this)
+            refreshUi()
+        }
     }
 }

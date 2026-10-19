@@ -9,3 +9,7 @@ android/local.properties
 *.keystore
 *.jks
 android/local.properties
+
+# health data from the webapp, never commit
+tools/analysis/data/
+__pycache__/

@@ -56,20 +56,7 @@ class HeuristicDetector(private val p: HeuristicParams = HeuristicParams()) : Wa
         return Stats(mov, hrRecent, base, onset, baseline.size, age)
     }
 
-    /** First moment followed by [HeuristicParams.onsetQuietMinutes] minutes with no movement; else the session start. */
-    private fun estimateOnset(samples: List<Sample>, sessionStart: Long): Long {
-        val quiet = p.onsetQuietMinutes * 60L
-        var quietSince: Long? = null
-        for (x in samples) {
-            if ((x.movement ?: 0) > 0) {
-                quietSince = null
-            } else {
-                if (quietSince == null) quietSince = x.ts
-                if (x.ts - quietSince >= quiet) return quietSince
-            }
-        }
-        return sessionStart
-    }
+    private fun estimateOnset(samples: List<Sample>, sessionStart: Long): Long = estimateOnset(samples, sessionStart, p.onsetQuietMinutes)
 
     override fun describe(ctx: DetectionContext): Map<String, Any?> {
         val st = stats(ctx)
@@ -94,6 +81,21 @@ class HeuristicDetector(private val p: HeuristicParams = HeuristicParams()) : Wa
     }
 
     companion object {
+        /** First moment followed by [quietMinutes] minutes with no movement; else the session start. */
+        fun estimateOnset(samples: List<Sample>, sessionStart: Long, quietMinutes: Int): Long {
+            val quiet = quietMinutes * 60L
+            var quietSince: Long? = null
+            for (x in samples) {
+                if ((x.movement ?: 0) > 0) {
+                    quietSince = null
+                } else {
+                    if (quietSince == null) quietSince = x.ts
+                    if (x.ts - quietSince >= quiet) return quietSince
+                }
+            }
+            return sessionStart
+        }
+
         fun median(v: List<Int>): Double? {
             if (v.isEmpty()) return null
             val s = v.sorted()

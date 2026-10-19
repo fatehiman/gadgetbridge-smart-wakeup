@@ -14,6 +14,10 @@ See [webapp/README.md](webapp/README.md): setup, API, cleanup (auto-delete after
 
 Deploy: `bash deploy/deploy.sh` (ger1, user `gadget`).
 
+## Daily optimization
+
+[optimize-app.md](optimize-app.md) is the routine for improving the wake-up algorithm from the stored nights (fetch data, check quality, fit, push a new detector config, log). Tools: [tools/analysis/](tools/analysis/). Log: [reference-docs/optimization-log.md](reference-docs/optimization-log.md).
+
 ## Android
 
 - What the watch and the code really do: [DISCOVERY.md](DISCOVERY.md) (Phase 0).

@@ -28,9 +28,14 @@ class SwSettings(context: Context) {
     var toleranceMin: Int
         get() = p.getInt("tolerance_min", 15).coerceIn(0, 60)
         set(v) = p.edit().putInt("tolerance_min", v.coerceIn(0, 60)).apply()
-    var mode: Mode
-        get() = Mode.fromId(p.getString("mode", null))
-        set(v) = p.edit().putString("mode", v.id).apply()
+    /**
+     * There is only one way to use the app: always record, always try to wake at light sleep inside the window,
+     * and always wake at the deadline. The only switch is "never wake early" (collect data only), off by default.
+     */
+    var neverWakeEarly: Boolean
+        get() = p.getBoolean("never_wake_early", false)
+        set(v) = p.edit().putBoolean("never_wake_early", v).apply()
+    val mode: Mode get() = if (neverWakeEarly) Mode.MONITOR_ONLY else Mode.SMART_WAKE
     var deviceAddress: String
         get() = p.getString("device_address", "") ?: ""
         set(v) = p.edit().putString("device_address", v).apply()
@@ -61,6 +66,14 @@ class SwSettings(context: Context) {
         set(v) = p.edit().putInt("h_recent_min", v.recentMinutes).putInt("h_hr_delta", v.hrDeltaBpm)
             .putInt("h_base_pct", v.basePercentile).putInt("h_onset_quiet_min", v.onsetQuietMinutes)
             .putInt("h_max_stale_min", v.maxStaleMinutes).apply()
+
+    // ---- detector config downloaded from the server ----
+    var detectorConfigJson: String
+        get() = p.getString("detector_config_json", "") ?: ""
+        set(v) = p.edit().putString("detector_config_json", v).apply()
+    var detectorConfigVersion: Int
+        get() = p.getInt("detector_config_version", 0)
+        set(v) = p.edit().putInt("detector_config_version", v).apply()
 
     // ---- sync ----
     var syncEnabled: Boolean

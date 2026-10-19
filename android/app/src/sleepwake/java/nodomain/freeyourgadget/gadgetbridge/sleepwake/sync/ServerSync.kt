@@ -35,10 +35,35 @@ class ServerSync(private val ctx: Context) {
         Result(false, e.message ?: "error")
     }
 
+    /**
+     * Downloads the newest detector config (tuned by the analysis from the nights). A failure is harmless:
+     * the last downloaded config, or the built-in numbers, stay in use. Short timeouts, safe to call right before a night.
+     */
+    fun fetchConfig(quick: Boolean = false): Result = try {
+        check()
+        val body = request("GET", "/api/v1/config", null, if (quick) 6_000 else 20_000, if (quick) 8_000 else 30_000)
+        @Suppress("UNCHECKED_CAST")
+        val m = Json.parse(body) as Map<String, Any?>
+        val version = (m["version"] as? Number)?.toInt() ?: 0
+        val cfg = m["config"]
+        if (cfg is Map<*, *> && version != settings.detectorConfigVersion) {
+            settings.detectorConfigJson = Json.encode(cfg)
+            settings.detectorConfigVersion = version
+            Result(true, "config v$version downloaded")
+        } else {
+            Result(true, "config v${settings.detectorConfigVersion} is current")
+        }
+    } catch (e: SyncException) {
+        Result(false, e.message ?: "error")
+    } catch (e: Exception) {
+        Result(false, "config: ${e.javaClass.simpleName}")
+    }
+
     fun run(): Result {
         val started = System.currentTimeMillis() / 1000
         return try {
             check()
+            fetchConfig()
             val counts = intArrayOf(0, 0, 0)
             uploadSessionsAndEvents(counts)
             uploadSamples(counts)
@@ -127,13 +152,13 @@ class ServerSync(private val ctx: Context) {
         request("POST", "/api/v1/ingest", encode(payload))
     }
 
-    private fun request(method: String, path: String, body: String?): String {
+    private fun request(method: String, path: String, body: String?, connectMs: Int = 20_000, readMs: Int = 60_000): String {
         val url = URL(settings.baseUrl.trimEnd('/') + path)
         val c = url.openConnection() as HttpURLConnection
         try {
             c.requestMethod = method
-            c.connectTimeout = 20_000
-            c.readTimeout = 60_000
+            c.connectTimeout = connectMs
+            c.readTimeout = readMs
             c.setRequestProperty("Authorization", "Bearer " + settings.apiToken) // never logged
             c.setRequestProperty("Accept", "application/json")
             if (body != null) {

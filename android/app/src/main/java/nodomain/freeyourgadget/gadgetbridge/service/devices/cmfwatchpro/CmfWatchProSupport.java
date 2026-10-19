@@ -571,6 +571,11 @@ public class CmfWatchProSupport extends AbstractBTLESingleDeviceSupport implemen
         if (StringUtils.isBlank(authKey)) {
             return null;
         }
+        // SLEEPWAKE FORK: an all-zero key means "I have no key": let the driver ask the watch to negotiate a new one
+        // (the "AT GETSECRET" path). Only works on a watch that is not paired with another phone or app.
+        if (authKey.replaceFirst("^0x", "").matches("0{32}")) {
+            return null;
+        }
 
         final byte[] authKeyBytes = new byte[16];
 

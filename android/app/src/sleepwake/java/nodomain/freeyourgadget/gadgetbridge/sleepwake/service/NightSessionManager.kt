@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.Clock
-import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.HeuristicDetector
+import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.DetectorFactory
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.Json
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.Mode
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.core.NoopDetector
@@ -29,8 +29,9 @@ import java.util.UUID
 object NightSessionManager {
     private const val TAG = "SleepWake"
 
+    /** The detector comes from the downloaded config (if any), else from the local numbers. */
     fun buildDetector(settings: SwSettings, mode: Mode): WakeDetector =
-        if (mode == Mode.SMART_WAKE) HeuristicDetector(settings.heuristic) else NoopDetector
+        if (mode == Mode.SMART_WAKE) DetectorFactory.create(settings.detectorConfigJson, settings.heuristic) else NoopDetector
 
     fun buildEngine(s: SwSession, settings: SwSettings): WakeEngine {
         val mode = Mode.fromId(s.mode)
@@ -57,7 +58,7 @@ object NightSessionManager {
             targetTime = window.target.epochSecond, toleranceMin = settings.toleranceMin,
             windowStart = window.windowStart.epochSecond, deadline = window.deadline.epochSecond,
             fireAt = engine.hardDeadline().epochSecond, detectorId = detector.id,
-            detectorParamsJson = Json.encode(detector.params()), timezone = zone.id,
+            detectorParamsJson = Json.encode(detector.params() + ("config_version" to settings.detectorConfigVersion)), timezone = zone.id,
             deviceAddress = device?.address ?: "", wakeReason = null, wakeTs = null, ackedAt = null, uploaded = false,
         )
         store.insertSession(session)

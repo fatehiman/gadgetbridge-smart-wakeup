@@ -19,18 +19,29 @@ class MorningRatingActivity : AbstractGBActivity() {
         val d = resources.displayMetrics.density
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding((16 * d).toInt(), (16 * d).toInt(), (16 * d).toInt(), (16 * d).toInt()) }
         root.addView(TextView(this).apply { text = "Good morning. How do you feel? (1 = terrible, 5 = great)"; textSize = 18f })
+        // how hard was it to wake up: the best simple sign of being woken from light (easy) or deep (hard) sleep
+        var ease: Int? = null
+        val easeGroup = android.widget.RadioGroup(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            listOf(1 to "Waking was easy", 2 to "OK", 3 to "Hard / groggy").forEach { (v, label) ->
+                addView(android.widget.RadioButton(context).apply { id = 100 + v; text = label })
+            }
+            setOnCheckedChangeListener { _, id -> ease = id - 100 }
+        }
         val note = EditText(this).apply { hint = "Optional note (dreams, woke at night, ...)"; minLines = 2 }
         val row = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(0, (16 * d).toInt(), 0, (16 * d).toInt()) }
         (1..5).forEach { n ->
             row.addView(Button(this).apply {
                 text = n.toString()
                 setOnClickListener {
-                    SleepWakeStore.get(this@MorningRatingActivity).addEvent(uuid, "morning_rating", mapOf("rating" to n, "note" to note.text.toString().ifBlank { null }))
+                    SleepWakeStore.get(this@MorningRatingActivity).addEvent(uuid, "morning_rating", mapOf("rating" to n, "ease" to ease, "note" to note.text.toString().ifBlank { null }))
                     SyncScheduler.enqueueNow(this@MorningRatingActivity, 5)
                     finish()
                 }
             }, LinearLayout.LayoutParams(0, (64 * d).toInt(), 1f))
         }
+        root.addView(TextView(this).apply { text = "How was waking up? (optional, then tap a rating)"; textSize = 14f })
+        root.addView(easeGroup)
         root.addView(row)
         root.addView(note)
         root.addView(Button(this).apply { text = "Skip"; setOnClickListener { finish() } })

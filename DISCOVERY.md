@@ -8,7 +8,7 @@ Nothing here is a guess: every item was read in the code. Items that can only be
 
 - Coordinator: `devices/cmfwatchpro/CmfWatchPro2Coordinator.java` (extends `CmfWatchProCoordinator`). Name regex `^CMF Watch Pro 2(-[A-Z0-9]{4})$` (so `-3BAD` matches). Registered in `model/DeviceType.java:1050`.
 - Device support: `service/devices/cmfwatchpro/CmfWatchProSupport.java`. Helpers in the same package: `CmfCharacteristic` (framing, AES, CRC), `CmfCommand` (command enum), `CmfActivitySync` (fetch + persistence), `CmfPreferences` (settings).
-- Auth is required (`requiresAuthKey()`): a 32-character key. **A fresh install of the fork does not know the key of the official app.** Move the paired device over with the Gadgetbridge export/import (Data management).
+- Auth is required (`requiresAuthKey()`): a 32-character key that the watch maker's server creates when the watch is paired with the vendor app. The key cannot be chosen. If no key is saved, the driver has a shell path (`AT GETSECRET`, `CmfWatchProSupport.java:226`, `handleShellCommand`) that negotiates one with the watch and saves it as `authkey`; the Gadgetbridge pairing screen does not allow an empty key, so the fork treats 32 zeros as "no key" (experimental, see android/SLEEPWAKE.md). **A fresh install does not know the key of an earlier install**: keep a Gadgetbridge export.
 - Commands used by this project:
   - fetch: `ACTIVITY_FETCH_1` (ffff/8005) payload `A5`, ack `ACTIVITY_FETCH_ACK_1`
   - find watch: `FIND_WATCH` (005d/0001), empty payload

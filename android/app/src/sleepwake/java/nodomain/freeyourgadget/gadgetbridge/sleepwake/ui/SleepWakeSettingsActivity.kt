@@ -62,6 +62,7 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
             }
 
             override fun getBoolean(key: String, defValue: Boolean) = when (key) {
+                "never_wake_early" -> s.neverWakeEarly
                 "sync_enabled" -> s.syncEnabled
                 "sync_wifi_only" -> s.wifiOnly
                 else -> defValue
@@ -69,6 +70,7 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
 
             override fun putBoolean(key: String, value: Boolean) {
                 when (key) {
+                    "never_wake_early" -> s.neverWakeEarly = value
                     "sync_enabled" -> s.syncEnabled = value
                     "sync_wifi_only" -> s.wifiOnly = value
                 }
@@ -105,6 +107,8 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
 
         private fun refreshSummaries() {
             val s = SwSettings(requireContext())
+            findPreference<Preference>("detector_info")?.summary = if (s.detectorConfigVersion > 0)
+                "version ${s.detectorConfigVersion}: ${s.detectorConfigJson.take(300)}" else "none yet (built-in heuristic is used)"
             findPreference<Preference>("sync_status")?.summary = if (s.lastSyncTs > 0)
                 "${DateFormat.getDateTimeInstance().format(Date(s.lastSyncTs * 1000))}: ${s.lastSyncStatus}" else s.lastSyncStatus
         }
