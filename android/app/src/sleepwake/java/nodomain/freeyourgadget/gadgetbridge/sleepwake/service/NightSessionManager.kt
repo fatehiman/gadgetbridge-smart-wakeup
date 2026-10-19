@@ -29,6 +29,9 @@ import java.util.UUID
 object NightSessionManager {
     private const val TAG = "SleepWake"
 
+    /** one attempt every 30 s: 60 attempts = 30 minutes, then the night is closed without an acknowledgement */
+    private const val MAX_WAKE_ATTEMPTS = 60
+
     /** The detector comes from the downloaded config (if any), else from the local numbers. */
     fun buildDetector(settings: SwSettings, mode: Mode): WakeDetector =
         if (mode == Mode.SMART_WAKE) DetectorFactory.create(settings.detectorConfigJson, settings.heuristic) else NoopDetector
@@ -150,6 +153,14 @@ object NightSessionManager {
         val s = store.activeSession() ?: return
         if (s.wakeTs == null || s.ackedAt != null) return
         val n = getAttempts(ctx) + 1
+        if (n > MAX_WAKE_ATTEMPTS) { // nobody answered for 30 minutes: stop vibrating, close the night
+            store.addEvent(s.uuid, "wake_gave_up", mapOf("attempts" to n - 1))
+            SwAlarms.cancelRepeat(ctx)
+            WakeActuator.stopAll(ctx, s.deviceAddress)
+            Notifier.cancelWake(ctx)
+            startService(ctx, NightSessionService.ACTION_FINALIZE)
+            return
+        }
         setAttempts(ctx, n)
         val r = WakeActuator.attempt(ctx, s.deviceAddress, n)
         if (n == 1 || n % 5 == 0 || r.phoneAlert) {
