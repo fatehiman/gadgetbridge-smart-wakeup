@@ -134,6 +134,20 @@ class NightActivity : AbstractGBActivity() {
             text = "Settings (sync, detector, behavior)"
             setOnClickListener { startActivity(Intent(this@NightActivity, SleepWakeSettingsActivity::class.java)) }
         })
+        // day mode: stop Gadgetbridge's service and the Bluetooth connection (upstream "Quit"). Not allowed during a night.
+        root.addView(Button(this).apply {
+            text = "Stop service (day mode)"
+            setOnClickListener {
+                if (store.activeSession() != null) {
+                    android.widget.Toast.makeText(this@NightActivity, "A night is running. Stop the session first.", android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    AlertDialog.Builder(this@NightActivity)
+                        .setMessage("Stop the app service and disconnect the watch? Open the app again in the evening: it reconnects, and the checklist tells you if not.")
+                        .setPositiveButton("Stop") { _, _ -> nodomain.freeyourgadget.gadgetbridge.GBApplication.quit() }
+                        .setNegativeButton("Cancel", null).show()
+                }
+            }
+        })
         inputs = listOf(timeButton, tolSeek)
         return ScrollView(this).apply { addView(root) }
     }

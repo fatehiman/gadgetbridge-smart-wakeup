@@ -66,3 +66,10 @@ Run these on the real phone and watch. Tick them off and write the date.
 ## Detector config from the server
 
 The detector (what counts as "light sleep") is not fixed in the app. At each sync, and right before a night starts, the app downloads the newest *detector config* from the webapp (`GET /api/v1/config`, Settings page of the webapp shows the versions). The config names the detector (`heuristic_v1` or `scored_v1`) and its numbers. With no config the built-in `heuristic_v1` is used. Each night stores the config version it used (`detector_params.config_version`), and every evaluation logs its inputs, so the effect of a change can be checked. How the algorithm is improved from the nights: [../optimize-app.md](../optimize-app.md).
+
+## Day mode, battery, kills
+
+- The module itself does nothing outside a night (no service, no alarm, no network except the sync job every 15 minutes if sync is on). The main battery use is Gadgetbridge's own Bluetooth connection to the watch, as in the official app.
+- **Stop service (day mode)** on the Night screen quits the app service and disconnects the watch (it is Gadgetbridge's own *Quit*). It is refused while a night is running. Open the app in the evening: it reconnects, and the checklist tells you if not.
+- During a night: the hard alarm (`setAlarmClock`) fires even if Android kills the process, and the tick alarms restart the service. **Force stop** (Settings → Apps → Force stop) cancels all alarms of the app until it is opened again, so do not do that during a night. On Samsung, also set the app to *Unrestricted* battery and add it to *Never sleeping apps*.
+- After a reboot the app starts by itself (Gadgetbridge's "start on boot", default on) and a running night is restored by `SwBootReceiver`.
