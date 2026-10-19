@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- own authority so the fork installs next to the official Gadgetbridge -->
+    <string translatable="false" name="pebble_content_provider">com.getpebble.android.sleepwake.provider</string>
+    <string translatable="false" name="app_name">SleepWake</string>
+    <string translatable="false" name="title_activity_controlcenter">@string/title_activity_controlcenter_generic</string>
+    <string translatable="false" name="about_activity_title">@string/about_activity_title_generic</string>
+    <string translatable="false" name="about_description">@string/about_description_generic</string>
+    <string translatable="false" name="gadgetbridge_running">@string/gadgetbridge_running_generic</string>
+</resources>

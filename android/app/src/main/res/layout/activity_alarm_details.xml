@@ -1,0 +1,298 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="nodomain.freeyourgadget.gadgetbridge.activities.AlarmDetails">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="6dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_label"
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginVertical="6dp"
+            app:cardBackgroundColor="?attr/device_card_bg"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/stat_tile_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:id="@+id/card_label_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/preset_label_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/world_clock_label"
+                    android:labelFor="@+id/preset_label_spinner">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/preset_label_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/title_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/title"
+                    android:labelFor="@+id/title">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:maxLength="32" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/description_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/description"
+                    android:labelFor="@+id/description">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start|top"
+                        android:inputType="textMultiLine"
+                        android:maxLength="256" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_time"
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginVertical="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="?attr/device_card_bg"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/stat_tile_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/reminder_time"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:id="@+id/alarm_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceDisplayMedium" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginVertical="6dp"
+            app:cardBackgroundColor="?attr/device_card_bg"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/stat_tile_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/reminder_repeat"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/dowSelector"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_monday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_tuesday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_wednesday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_thursday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_friday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_saturday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/cb_sunday"
+                        style="@style/Widget.App.Chip.Weekday" />
+
+                    <androidx.constraintlayout.helper.widget.Flow
+                        android:id="@+id/dow_flow"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:constraint_referenced_ids="cb_monday,cb_tuesday,cb_wednesday,cb_thursday,cb_friday,cb_saturday,cb_sunday"
+                        app:flow_horizontalStyle="spread_inside"
+                        app:flow_wrapMode="none"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_options"
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginVertical="6dp"
+            app:cardBackgroundColor="?attr/device_card_bg"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/stat_tile_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:id="@+id/card_options_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/sound_mode_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="8dp"
+                    android:hint="@string/pref_header_sound_vibration"
+                    android:labelFor="@+id/sound_mode_spinner">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/sound_mode_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/cb_snooze"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_activity_sleep"
+                    android:drawablePadding="16dp"
+                    android:drawableTint="?android:attr/textColorSecondary"
+                    android:minHeight="48dp"
+                    android:text="@string/alarm_snooze"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/cb_backlight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_wb_sunny"
+                    android:drawablePadding="16dp"
+                    android:drawableTint="?android:attr/textColorSecondary"
+                    android:minHeight="48dp"
+                    android:text="@string/watchface_setting_button_toggle_backlight"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/cb_smart_wakeup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_alarm_smart_wake"
+                    android:drawablePadding="16dp"
+                    android:drawableTint="?android:attr/textColorSecondary"
+                    android:minHeight="48dp"
+                    android:text="@string/alarm_smart_wakeup"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/smart_wakeup_interval_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="8dp"
+                    android:hint="@string/alarm_smart_wakeup_interval_minutes"
+                    android:labelFor="@+id/cb_smart_wakeup_interval"
+                    app:placeholderText="@string/alarm_smart_wakeup_interval_default">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/cb_smart_wakeup_interval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tv_smart_wakeup_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>

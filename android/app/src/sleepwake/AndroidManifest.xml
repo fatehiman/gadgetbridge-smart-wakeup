@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- SLEEPWAKE FORK: network only for the sync to the user's own server (see SLEEPWAKE_CHANGES.md) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <application>
+        <activity
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.ui.NightActivity"
+            android:exported="false"
+            android:label="SleepWake"
+            android:parentActivityName="nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
+        <activity
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.ui.SleepWakeSettingsActivity"
+            android:exported="false"
+            android:label="SleepWake settings"
+            android:parentActivityName="nodomain.freeyourgadget.gadgetbridge.sleepwake.ui.NightActivity" />
+        <activity
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.ui.MorningRatingActivity"
+            android:exported="false"
+            android:label="How do you feel?" />
+
+        <service
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.service.NightSessionService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <receiver
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.service.SwAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.service.SwBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

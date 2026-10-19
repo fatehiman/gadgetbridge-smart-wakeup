@@ -6,7 +6,7 @@ Full specification: [reference-docs/SLEEPWAKE_PROJECT_SPEC.md](reference-docs/SL
 | Part | Folder | Status |
 |---|---|---|
 | Webapp (Laravel + Blade + MySQL) | [webapp/](webapp/README.md) | done, live at <https://gadget.peppasoft.com> |
-| Android app (Gadgetbridge fork, module `sleepwake`) | `android/` (not started) | waiting for Phase 0 (`DISCOVERY.md`) and review |
+| Android app (Gadgetbridge fork, module `sleepwake`) | [android/](android/SLEEPWAKE.md) | built, 31 unit tests pass, installs and starts. Needs real nights on the watch (see the manual checklist) |
 
 ## Webapp
 
@@ -16,5 +16,8 @@ Deploy: `bash deploy/deploy.sh` (ger1, user `gadget`).
 
 ## Android
 
-The spec says Phase 0 (reading the Gadgetbridge code and the real watch data) must be written to `DISCOVERY.md` and reviewed
-before any implementation. That is the next step.
+- What the watch and the code really do: [DISCOVERY.md](DISCOVERY.md) (Phase 0).
+- Setup, use, sync and the manual test checklist: [android/SLEEPWAKE.md](android/SLEEPWAKE.md).
+- What was changed in upstream Gadgetbridge (4 small edits, rest is a separate build flavor `sleepwake`): [android/SLEEPWAKE_CHANGES.md](android/SLEEPWAKE_CHANGES.md).
+
+Known limits (from Phase 0): the CMF driver cannot stop find-watch from the phone (the app repeats it until you tap "I'm awake"), heart rate has only OFF/SMART modes, there is no live data (fetch loop only), and the optional backup alarm on the watch is not implemented because it is not verified to be vibrate-only.

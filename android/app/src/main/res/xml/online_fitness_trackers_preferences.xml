@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:icon="@drawable/ic_warning"
+        android:key="pref_key_network_required"
+        android:title="@string/warning_network_required_title"
+        android:summary="@string/warning_network_required_summary" />
+
+    <!-- One row per registered service is added by OnlineFitnessTrackersPreferencesActivity -->
+</PreferenceScreen>

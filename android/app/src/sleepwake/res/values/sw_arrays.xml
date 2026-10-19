@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sw_monitor_wake_names">
+        <item>Target time</item>
+        <item>Deadline (target + tolerance)</item>
+    </string-array>
+    <string-array name="sw_monitor_wake_values">
+        <item>target</item>
+        <item>deadline</item>
+    </string-array>
+    <string-array name="sw_fallback_names">
+        <item>Phone vibration + notification</item>
+        <item>Phone alarm sound</item>
+    </string-array>
+    <string-array name="sw_fallback_values">
+        <item>vibrate</item>
+        <item>alarm</item>
+    </string-array>
+</resources>
