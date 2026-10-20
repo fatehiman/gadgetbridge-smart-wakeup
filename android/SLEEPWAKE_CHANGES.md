@@ -3,7 +3,7 @@
 This folder is a copy of upstream [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) (AGPL-3.0-or-later, licence and headers unchanged) with the SleepWake module added.
 
 - **Upstream base:** commit `efb0ae5c41d3b3f3903b61959dc7ca908bc77828` (2026-10-19, version 0.95.1, versionCode 255).
-- To update: clone upstream at the new commit, copy it over `android/` **except** the files listed below as "added", then re-apply the five small edits of "touched upstream files" (each is marked with a `SLEEPWAKE FORK` comment).
+- To update: clone upstream at the new commit, copy it over `android/` **except** the files listed below as "added", then re-apply the six small edits of "touched upstream files" (each is marked with a `SLEEPWAKE FORK` comment).
 
 ## Design rule
 
@@ -23,7 +23,7 @@ All new code is in a **build flavor** `sleepwake` (`app/src/sleepwake/`, package
 | `app/src/testSleepwake/` | unit tests (window/deadline/DST, modes, detector, simulation, sync batching, JSON) |
 | `SLEEPWAKE_CHANGES.md`, `SLEEPWAKE.md` | these notes, setup and the manual test checklist |
 
-## Touched upstream files (5)
+## Touched upstream files (6, plus 1 new file)
 
 1. `app/build.gradle`
    - new product flavor `sleepwake` (`applicationIdSuffix ".sleepwake"`, `INTERNET_ACCESS = true`)
@@ -34,6 +34,10 @@ All new code is in a **build flavor** `sleepwake` (`app/src/sleepwake/`, package
 4. `app/src/main/java/.../activities/ControlCenterv2.java`: shows the menu item only when the `NightActivity` class exists in the build, and opens it (by class name, no compile dependency), plus one import.
 
 5. `app/src/main/java/.../service/devices/cmfwatchpro/CmfWatchProSupport.java`: `getSecretKey()` returns null for an all-zero auth key, so the driver's existing `AT GETSECRET` negotiation runs (pairing without a known key, experimental, see SLEEPWAKE.md).
+
+6. `app/src/main/java/.../service/devices/cmfwatchpro/CmfActivitySync.java`: one line in `handleActivityData` calls `CmfRawTap.activityRecord(...)` with the 16 bytes the driver ignores.
+
+New upstream-side file: `app/src/main/java/.../service/devices/cmfwatchpro/CmfRawTap.java` (a listener hook, does nothing without a listener; the module registers one from `SwInitProvider`).
 
 No other upstream file is edited. No upstream class is subclassed or replaced. The module uses only public entry points: `GBApplication.deviceService(...)`, `GBApplication.acquireDbReadOnly()`, the device's sample provider, and the `ACTION_NEW_DATA` / `ACTION_DEVICE_CHANGED` local broadcasts.
 

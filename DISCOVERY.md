@@ -90,3 +90,16 @@ The module logs it in every night, with no extra debug patch:
 
 - Gradle 9.7.1, AGP 9.4.1, Kotlin 2.4, JDK 21 (Android Studio's bundled JBR), compileSdk 37 (Gradle downloads it). minSdk 23, targetSdk 35.
 - Command: `./gradlew assembleSleepwakeDebug` (see `android/SLEEPWAKE.md`).
+
+## Measured (first real night, 2026-10-19/20, one night, CMF Watch Pro 2, "smart" HR mode)
+
+- **Fetch works every 5 minutes**: 101 fetches in 8.6 h, each took about 3 s, 1 timeout. The newest sample was **15–45 s old** when a fetch finished. So the data is fresh. Latency is not the problem.
+- **Heart rate: one value every 5 minutes** (smart mode), 71–134 bpm, 75–82 at night. **The mean HR per watch-stage was the same: light 79.8, deep 80.1, REM 81.2 bpm.** On this data, HR cannot tell light from deep sleep.
+- **No live movement.** `steps` and `intensity` were 0 for all night samples. The activity table has only about one row per hour, and the 16 unknown bytes of the activity records (now captured by `CmfRawTap`) were all zero in the first records.
+- **SpO2**: one value about every 30 minutes (95–98). My first reader missed it (it only looked at the activity overlay). The reader now reads the SpO2 table.
+- **Stress**: none stored. Stress monitoring was off. The app now switches it on at the start of a night (it is derived from heart-rate variability).
+- **Sleep stages: the watch makes a full hypnogram (deep / light / REM / awake, segments of 3–35 min) but sends it only after the night**: 0 stage rows in all 102 mid-night fetches, then 1 sleep session + 37 stage rows after a fetch about 1 hour after waking. So stages are not usable live, but they are a perfect **answer key** for learning from the other signals. Stage code 4 = awake (10 min seen). Night total: light 243 min, deep 185, REM 79, awake 10.
+- **Find-watch rings** on the CMF watch (sound), so it is no longer the default wake alert. The default is now a short text notification (same call as Gadgetbridge's debug "test notification"), which only vibrates once; it is repeated every 15 s for at most 30 minutes.
+- Phone notifications (Telegram...) vibrated the watch at night. The device preference `send_app_notifications` switches the forwarding off (the CMF driver then ignores every app notification). The app turns it off at the start of a night, turns it on for the wake alert, and restores the original value when the night ends.
+
+Open: how long one notification buzz lasts, whether phone motion (accelerometer on the mattress) and stress/SpO2 follow the watch stages (collected from the next nights on), whether the 16 unknown activity bytes carry movement during exercise (test: `tools/analysis/raw_decode.py`).

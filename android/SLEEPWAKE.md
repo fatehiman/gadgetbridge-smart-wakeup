@@ -86,3 +86,10 @@ Instead of typing the 51-character token, a developer can write the settings fro
 printf '{"base_url":"https://gadget.peppasoft.com","token":"sw_..."}' | adb shell "run-as nodomain.freeyourgadget.gadgetbridge.sleepwake sh -c 'cat > files/provision.json'"
 ```
 Open the Night screen once. Release builds ignore the file.
+
+## Wake alert, quiet watch, phone motion
+
+- **Wake alert**: by default the watch gets a short text notification ("Wake up"), which makes it vibrate once without sound (the same call as Gadgetbridge's debug notification). It is repeated every 15 s (setting) until you tap **I'm awake**, for at most 30 minutes. After 8 attempts (2 minutes) the phone also alerts. *Find watch* (rings on the CMF watch) is an option in the settings. The Night screen has **Test the watch alert** for a daytime test.
+- **Silence the watch during the night** (on by default): at the start of a night the app switches off notification forwarding for the watch (Gadgetbridge's device preference `send_app_notifications`), so Telegram and SMS do not buzz it. It is switched on again for the wake alert, and restored when the night ends (the Night screen also restores it if no night is running). The phone itself and phone calls are not changed.
+- **Phone motion** (on by default): during a night the phone's accelerometer is read in batches and stored per minute. Put the phone on the mattress next to you. It is the only live movement signal, because the watch gives none. It is uploaded as `extra.pm` and shown on the night page.
+- Also collected and uploaded: SpO2, stress (switched on at the start of a night), the watch's sleep stages (per minute, they arrive after the night), and the 16 unknown bytes of the activity records (`extra.raw`).

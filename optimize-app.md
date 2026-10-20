@@ -143,6 +143,18 @@ Append to `reference-docs/optimization-log.md` (newest at the bottom), always th
 5. Does the watch record HR every minute at night in "smart" mode, or sparser?
 6. Does Doze or battery saving delay ticks (gaps between `fetch_started` events > 5 min)?
 
+## 8b. What the first night showed (2026-10-20) and the plan
+
+- The watch gives, live: HR every 5 min (flat, about 80 all night, the same in every stage), SpO2 every 30 min, nothing about movement. The only good sleep signal is the watch's own hypnogram, which arrives **after** the night.
+- So the live detector is weak with HR alone. The plan is to learn from the hypnogram (labels) which live signals predict "light/awake":
+  1. **Phone motion** (`extra.pm`, `pmx`, `pmn` per minute: accelerometer on the mattress). Check per night: is there any phone motion at all (phone on the bed?), and does it rise at the stage changes? Compute AUC of `pm` for `light|awake` vs `deep`.
+  2. **Stress** (`extra.stress`, HRV based) and **SpO2** (`spo2`): same test.
+  3. **Raw bytes** (`extra.raw`, 16 bytes of the activity record): see `tools/analysis/raw_decode.py`; needs a daytime test with known movements.
+  4. **Time structure**: the stage sequence itself (cycles of light/deep every 10–20 min here). With labels from several nights, estimate how likely "light" is at each minute after sleep onset and whether the window can be placed on a likely light stretch.
+- Add each useful signal as a feature in `ScoredDetector.kt` **and** `detector.py` (+ vectors + tests), then fit. Do not add a feature that does not beat chance on at least 5 nights.
+- If, after about 10 nights, no live signal beats chance, say so honestly to the owner and suggest: a wake time fixed from the typical cycle, or the phone-on-mattress signal, or nothing better than a plain alarm at the window end.
+- Experiments that need the owner (ask during the day): (a) a 25-minute controlled movement test for the raw bytes; (b) a nap with the phone on the mattress; (c) read `HEART_MONITORING_ENABLED_GET` replies, to find if the watch has a faster HR mode.
+
 ## 9. Day data (does the watch need to be worn in the daytime?)
 
 Not needed to start. The detector only uses the night. Day wear would add: a daytime resting-HR baseline (to normalize the night HR), activity load, and naps. After about 3–4 weeks of nights, if the night-only model plateaus, ask the owner whether to wear it by day for 1–2 weeks to test if a day baseline helps. Until then do not ask. (The webapp stores samples outside sessions too, so day data would be kept without changes.)
