@@ -96,3 +96,7 @@ details summary { cursor: pointer; color: var(--link); }
   .navlink span { display: none; } .navlink { padding: 8px 10px; }
 }
 @media (max-width: 460px) { .grid2 { grid-template-columns: 1fr; } }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 10px; font-size: .85rem; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }

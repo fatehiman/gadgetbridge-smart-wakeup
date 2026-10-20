@@ -41,8 +41,12 @@ class NightController extends Controller
                 ->values(),
         ];
         $summary = Night::summaries([$s])[0];
+        // minutes per watch sleep stage (one sample row = one minute), for the legend
+        $stageMinutes = DB::table('samples')->where('device_id', $s->device_id)
+            ->whereBetween('ts', [$s->started_at, $s->ended_at ?? $s->started_at + 86400])->whereNotNull('sleep_stage')
+            ->selectRaw('sleep_stage, count(*) as n')->groupBy('sleep_stage')->pluck('n', 'sleep_stage')->all();
 
-        return view('nights.show', compact('s', 'tz', 'events', 'chart', 'summary'));
+        return view('nights.show', compact('s', 'tz', 'events', 'chart', 'summary', 'stageMinutes'));
     }
 
     public function update(Request $r, int $session)

@@ -20,6 +20,13 @@
 <div class="card">
     <h2>Heart rate and movement</h2>
     <p class="small muted">Shaded band = wake window. Colored strip at the bottom = the watch's own sleep stages (dark blue deep, light blue light, purple REM, orange awake), which arrive only after the night. Lines: session start/stop, wake trigger, acknowledgement. Times in {{ $tz }}.</p>
+    <div class="legend">
+        @foreach ([['deep', 'Deep', '#3f5fa8'], ['light', 'Light', '#8bb9ee'], ['rem', 'REM', '#b69af0'], ['awake', 'Awake', '#f3a98c']] as [$k, $label, $color])
+            <span><i style="background: {{ $color }}"></i>{{ $label }}@if (isset($stageMinutes[$k])) <b>{{ $stageMinutes[$k] }} min</b>@endif</span>
+        @endforeach
+        <span><i style="background: rgba(251, 239, 198, .95); border: 1px solid #e0cf8a"></i>Wake window</span>
+        @if (! $stageMinutes)<span class="muted">The watch's sleep stages are not here yet: it sends them some time after you wake up. They appear after the next sync.</span>@endif
+    </div>
     <div class="chart-box"><canvas id="chart-hr"></canvas></div>
     <div class="chart-box short" style="margin-top:14px"><canvas id="chart-mov"></canvas></div>
     <script type="application/json" id="night-data">@json($chart)</script>
