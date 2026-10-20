@@ -15,3 +15,8 @@ Newest entry at the bottom. Format and rules: [../optimize-app.md](../optimize-a
 - Finding: HR means per stage are equal (79.8 / 80.1 / 81.2): HR cannot separate light and deep on this watch. The detector (heuristic_v1) never fired because HR stayed within 8 bpm of its baseline.
 - Change (code, no config): wake alert is now a vibrating notification (no sound), phone notifications silenced on the watch during a night, SpO2/stress/stage/raw bytes/phone-motion are now collected and uploaded, the night chart shows the stage strip.
 - Next: collect nights with phone motion + stress; check which signal follows the hypnogram (section 8b of optimize-app.md).
+
+## 2026-10-20 (evening) — daytime check
+- Owner confirmed: the new wake alert buzzes once without sound.
+- Daytime data (walking 12:00–16:00) shows no minute-level movement from the watch: hourly totals only, HR every 5 min, SpO2 every 30 min. Conclusion: the live signals available are HR (flat across stages), SpO2, stress (from tonight), and the phone's accelerometer. Whether phone motion follows the watch stages is untested: tonight is the first test.
+- Website: night page now has a color legend with minutes per stage.

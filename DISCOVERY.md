@@ -103,3 +103,9 @@ The module logs it in every night, with no extra debug patch:
 - Phone notifications (Telegram...) vibrated the watch at night. The device preference `send_app_notifications` switches the forwarding off (the CMF driver then ignores every app notification). The app turns it off at the start of a night, turns it on for the wake alert, and restores the original value when the night ends.
 
 Open: how long one notification buzz lasts, whether phone motion (accelerometer on the mattress) and stress/SpO2 follow the watch stages (collected from the next nights on), whether the 16 unknown activity bytes carry movement during exercise (test: `tools/analysis/raw_decode.py`).
+
+### Measured, daytime (2026-10-20, owner walking)
+
+- The activity records are **hourly running totals** of the day (steps, distance, calories) plus a few extra rows at each fetch, not minute movement. The first of the 16 unknown bytes is a counter that went 0, 1, 2, 3, 4, 5 for the hours 12:00–16:00 with walking: it looks like "hours with activity today". The other 15 bytes were zero.
+- Heart rate: one value every 5 minutes also in the daytime and while walking. SpO2: every 30 minutes. Stress: nothing (it was off).
+- So the watch gives no minute-level movement through this driver, day or night. Nothing live about sleep either: the sleep stages arrive only some time after waking (none 30 s after the owner woke; present about 1 hour later). Not yet known: exactly when the watch releases them, and whether a hidden command (`TRIGGER_SYNC`, unused upstream) can ask for them earlier.
