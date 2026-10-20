@@ -12,6 +12,8 @@ data class Sample(
     val movement: Int? = null,
     val spo2: Int? = null,
     val sleepStage: String? = null,
+    /** anything else the watch gave: stress, raw bytes of the activity record, ... (uploaded as the server's `extra`) */
+    val extra: Map<String, Any?>? = null,
 )
 
 enum class Mode(val id: String) {

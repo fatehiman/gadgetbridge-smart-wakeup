@@ -33,6 +33,7 @@ def api(method, path, body=None, timeout=120):
     req = urllib.request.Request(BASE_URL + path, method=method, data=json.dumps(body).encode() if body is not None else None)
     req.add_header("Authorization", "Bearer " + token())
     req.add_header("Accept", "application/json")
+    req.add_header("User-Agent", "gadget-analysis/1.0 (curl-compatible)")  # Cloudflare blocks the default Python signature (error 1010)
     if body is not None:
         req.add_header("Content-Type", "application/json")
     try:

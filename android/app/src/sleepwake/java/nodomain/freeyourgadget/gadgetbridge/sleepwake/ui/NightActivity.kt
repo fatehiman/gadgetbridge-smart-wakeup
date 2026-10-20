@@ -30,6 +30,7 @@ import nodomain.freeyourgadget.gadgetbridge.sleepwake.data.SleepWakeStore
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.data.SwSettings
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.DeviceAccess
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.NightSessionManager
+import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.NotificationGate
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.service.SwAlarms
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.sync.ServerSync
 import java.text.SimpleDateFormat
@@ -72,6 +73,7 @@ class NightActivity : AbstractGBActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (store.activeSession() == null) NotificationGate.restore(this) // safety: never leave the watch silent after a night
         handler.post(refresh)
     }
 
@@ -137,6 +139,20 @@ class NightActivity : AbstractGBActivity() {
         root.addView(Button(this).apply {
             text = "Settings (sync, detector, behavior)"
             setOnClickListener { startActivity(Intent(this@NightActivity, SleepWakeSettingsActivity::class.java)) }
+        })
+        root.addView(Button(this).apply {
+            text = "Test the watch alert (one buzz)"
+            setOnClickListener {
+                val d = DeviceAccess.device(this@NightActivity)
+                if (!DeviceAccess.isReady(d)) {
+                    android.widget.Toast.makeText(this@NightActivity, "Watch not connected", android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    NotificationGate.allowForWake(this@NightActivity, d) // forwarding must be on for the alert
+                    if (store.activeSession() == null) NotificationGate.restore(this@NightActivity)
+                    DeviceAccess.notifyWatch(this@NightActivity, d!!, 0)
+                    android.widget.Toast.makeText(this@NightActivity, "Sent. The watch should buzz once.", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         })
         // day mode: stop Gadgetbridge's service and the Bluetooth connection (upstream "Quit"). Not allowed during a night.
         root.addView(Button(this).apply {

@@ -40,6 +40,7 @@ class NightSessionService : Service() {
     private var awaitingFetch = false
     private var finalizing = false
     private var reconnectDelayMs = 30_000L
+    private var phoneMotion: PhoneMotion? = null
 
     private val newData = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -69,6 +70,7 @@ class NightSessionService : Service() {
     }
 
     override fun onDestroy() {
+        phoneMotion?.stop()
         val lbm = LocalBroadcastManager.getInstance(this)
         lbm.unregisterReceiver(newData)
         lbm.unregisterReceiver(deviceChanged)
@@ -85,6 +87,10 @@ class NightSessionService : Service() {
         if (session == null) {
             stopSelf()
             return START_NOT_STICKY
+        }
+        if (settings.phoneMotion && session.wakeTs == null && intent?.action != ACTION_FINALIZE) {
+            if (phoneMotion == null) phoneMotion = PhoneMotion(this)
+            phoneMotion?.start()
         }
         when (intent?.action) {
             ACTION_FINALIZE -> beginFinalize(session)
@@ -136,7 +142,7 @@ class NightSessionService : Service() {
         val took = System.currentTimeMillis() - fetchStartedMs
         val device = DeviceAccess.byAddress(session.deviceAddress)
         // latency measurement (DISCOVERY.md 3.9): receive time vs newest sample time
-        val samples = device?.let { SampleReader.read(it, session.startedAt, System.currentTimeMillis() / 1000) }.orEmpty()
+        val samples = device?.let { SampleReader.read(this, it, session.startedAt, System.currentTimeMillis() / 1000) }.orEmpty()
         val maxTs = SampleReader.maxTimestamp(samples)
         val nowS = System.currentTimeMillis() / 1000
         store.addEvent(
@@ -156,7 +162,7 @@ class NightSessionService : Service() {
         try {
             val device = DeviceAccess.byAddress(session.deviceAddress)
             val now = Instant.now()
-            val samples = preloaded ?: device?.let { SampleReader.read(it, session.startedAt, now.epochSecond) }.orEmpty()
+            val samples = preloaded ?: device?.let { SampleReader.read(this, it, session.startedAt, now.epochSecond) }.orEmpty()
             val engine = NightSessionManager.buildEngine(session, settings)
             val result = engine.evaluate(now, samples)
             store.addEvent(
@@ -216,6 +222,7 @@ class NightSessionService : Service() {
     private fun beginFinalize(session: SwSession) {
         if (finalizing) return
         finalizing = true
+        phoneMotion?.stop()
         acquireLock(3 * 60_000L)
         val device = DeviceAccess.byAddress(session.deviceAddress)
         if (device != null && DeviceAccess.isReady(device) && !device.isBusy) {

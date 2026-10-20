@@ -11,15 +11,17 @@ import nodomain.freeyourgadget.gadgetbridge.sleepwake.data.Fallback
 import nodomain.freeyourgadget.gadgetbridge.sleepwake.data.SwSettings
 
 /**
- * Makes the watch vibrate (find-watch) and, when the watch is not available, the phone.
- * The CMF driver cannot stop find-watch from the phone, and the watch decides how long it vibrates,
- * so the actuator is called again and again (every REPEAT_MS) until the user acknowledges.
+ * Makes the watch vibrate and, when the watch is not available, the phone.
+ * Default: a short text notification sent to the watch (the same call as Gadgetbridge's debug "test notification"):
+ * it vibrates once and does not ring. The alert is repeated (every `wake_repeat_sec`, default 15 s) until the user
+ * acknowledges, for at most 30 minutes. Find-watch (which rings on the CMF watch) is only an option.
  */
 object WakeActuator {
-    const val REPEAT_MS = 30_000L
+    /** After this many unacknowledged watch attempts the phone alerts too (escalation): 8 x 15 s = 2 minutes. */
+    const val ESCALATE_AFTER = 8
 
-    /** After this many unacknowledged watch attempts the phone alerts too (escalation). */
-    const val ESCALATE_AFTER = 6
+    /** The watch alert is repeated for at most this long, then the night is closed without an acknowledgement. */
+    const val GIVE_UP_AFTER_MS = 30 * 60_000L
 
     @Volatile private var ringtone: android.media.Ringtone? = null
 
@@ -34,10 +36,11 @@ object WakeActuator {
         if (device != null) {
             if (ready) {
                 try {
-                    DeviceAccess.findWatch(device, true)
+                    if (settings.wakeMethod == "find_watch") DeviceAccess.findWatch(device, true)
+                    else DeviceAccess.notifyWatch(ctx, device, attemptNo)
                     watchSent = true
                 } catch (e: Exception) {
-                    android.util.Log.w("SleepWake", "find watch failed", e)
+                    android.util.Log.w("SleepWake", "watch alert failed", e)
                 }
             } else {
                 runCatching { DeviceAccess.connect(device) } // try to bring it back for the next attempt
@@ -83,7 +86,7 @@ object WakeActuator {
         ringtone = null
         runCatching { vibrator(ctx).cancel() }
         val device = if (address.isNotEmpty()) DeviceAccess.byAddress(address) else DeviceAccess.device(ctx)
-        // no-op on the CMF driver, but other drivers can stop it
-        if (device != null && DeviceAccess.isReady(device)) runCatching { DeviceAccess.findWatch(device, false) }
+        // find-watch can be stopped on drivers that support it (a no-op on the CMF driver)
+        if (device != null && DeviceAccess.isReady(device) && SwSettings(ctx).wakeMethod == "find_watch") runCatching { DeviceAccess.findWatch(device, false) }
     }
 }

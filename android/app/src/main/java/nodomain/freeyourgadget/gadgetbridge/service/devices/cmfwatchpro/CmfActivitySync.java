@@ -161,6 +161,8 @@ public class CmfActivitySync {
 
             final byte[] unk = new byte[16];
             buf.get(unk);
+            // SLEEPWAKE FORK: let the sleepwake module see the unknown bytes (possible movement data)
+            CmfRawTap.activityRecord(sample.getTimestamp(), sample.getSteps(), sample.getDistance(), sample.getCalories(), unk);
 
             samples.add(sample);
         }

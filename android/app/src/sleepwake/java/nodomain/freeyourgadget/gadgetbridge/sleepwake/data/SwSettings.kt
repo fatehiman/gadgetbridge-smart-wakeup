@@ -51,6 +51,24 @@ class SwSettings(context: Context, skipProvision: Boolean = false) {
     var monitorWakeAt: MonitorWakeAt
         get() = if (p.getString("monitor_wake_at", "target") == "deadline") MonitorWakeAt.DEADLINE else MonitorWakeAt.TARGET
         set(v) = p.edit().putString("monitor_wake_at", v.name.lowercase()).apply()
+    /** how the watch is made to vibrate in the morning: a (silent text) notification, which only vibrates, or find-watch (rings) */
+    var wakeMethod: String
+        get() = p.getString("wake_method", "notification") ?: "notification"
+        set(v) = p.edit().putString("wake_method", v).apply()
+    var wakeRepeatSec: Int
+        get() = p.getInt("wake_repeat_sec", 15).coerceIn(5, 120)
+        set(v) = p.edit().putInt("wake_repeat_sec", v.coerceIn(5, 120)).apply()
+
+    /** during a night the watch ignores phone notifications (Telegram ...); restored when the night ends */
+    var silenceNotifications: Boolean
+        get() = p.getBoolean("silence_notifications", true)
+        set(v) = p.edit().putBoolean("silence_notifications", v).apply()
+
+    /** record the phone's own movement (put the phone on the mattress): the only live movement signal this watch cannot give */
+    var phoneMotion: Boolean
+        get() = p.getBoolean("phone_motion", true)
+        set(v) = p.edit().putBoolean("phone_motion", v).apply()
+
     var fallback: Fallback
         get() = Fallback.fromId(p.getString("fallback", null))
         set(v) = p.edit().putString("fallback", v.id).apply()
@@ -118,6 +136,6 @@ class SwSettings(context: Context, skipProvision: Boolean = false) {
     }
 
     companion object {
-        const val SAMPLE_LOOKBACK_SECONDS = 6 * 3600L
+        const val SAMPLE_LOOKBACK_SECONDS = 16 * 3600L // the watch's sleep stages arrive hours after the night: re-send the whole night
     }
 }

@@ -32,6 +32,8 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
                 "fetch_interval_min" -> s.fetchIntervalMin.toString()
                 "monitor_wake_at" -> s.monitorWakeAt.name.lowercase()
                 "fallback" -> s.fallback.id
+                "wake_method" -> s.wakeMethod
+                "wake_repeat_sec" -> s.wakeRepeatSec.toString()
                 "h_hr_delta" -> s.heuristic.hrDeltaBpm.toString()
                 "h_recent_min" -> s.heuristic.recentMinutes.toString()
                 "h_base_pct" -> s.heuristic.basePercentile.toString()
@@ -49,6 +51,8 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
                     "fetch_interval_min" -> n?.let { s.fetchIntervalMin = it }
                     "monitor_wake_at" -> s.monitorWakeAt = if (v == "deadline") MonitorWakeAt.DEADLINE else MonitorWakeAt.TARGET
                     "fallback" -> s.fallback = Fallback.fromId(v)
+                    "wake_method" -> s.wakeMethod = v
+                    "wake_repeat_sec" -> n?.let { s.wakeRepeatSec = it }
                     "h_hr_delta" -> n?.let { s.heuristic = s.heuristic.copy(hrDeltaBpm = it) }
                     "h_recent_min" -> n?.let { s.heuristic = s.heuristic.copy(recentMinutes = it) }
                     "h_base_pct" -> n?.let { s.heuristic = s.heuristic.copy(basePercentile = it) }
@@ -63,6 +67,8 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
 
             override fun getBoolean(key: String, defValue: Boolean) = when (key) {
                 "never_wake_early" -> s.neverWakeEarly
+                "silence_notifications" -> s.silenceNotifications
+                "phone_motion" -> s.phoneMotion
                 "sync_enabled" -> s.syncEnabled
                 "sync_wifi_only" -> s.wifiOnly
                 else -> defValue
@@ -71,6 +77,8 @@ class SleepWakeSettingsActivity : AbstractGBActivity() {
             override fun putBoolean(key: String, value: Boolean) {
                 when (key) {
                     "never_wake_early" -> s.neverWakeEarly = value
+                    "silence_notifications" -> s.silenceNotifications = value
+                    "phone_motion" -> s.phoneMotion = value
                     "sync_enabled" -> s.syncEnabled = value
                     "sync_wifi_only" -> s.wifiOnly = value
                 }

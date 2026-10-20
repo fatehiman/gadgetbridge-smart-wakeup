@@ -7,6 +7,23 @@
   var tick = function (v) { return fmt.format(new Date(v * 1000)); };
   var xmin = d.start, xmax = d.end || (d.points.length ? d.points[d.points.length - 1].ts : d.start + 3600);
 
+  var stageColors = { deep: '#3f5fa8', light: '#8bb9ee', rem: '#b69af0', awake: '#f3a98c' };
+  var stages = {
+    id: 'stages',
+    afterDatasetsDraw: function (chart) {
+      var c = chart.ctx, a = chart.chartArea, x = chart.scales.x, h = 10;
+      var pts = d.points.filter(function (p) { return p.stage; });
+      if (!pts.length) return;
+      c.save();
+      for (var i = 0; i < pts.length; i++) {
+        var x1 = x.getPixelForValue(pts[i].ts);
+        var x2 = x.getPixelForValue(i + 1 < pts.length ? pts[i + 1].ts : pts[i].ts + 60);
+        c.fillStyle = stageColors[pts[i].stage] || '#cccccc';
+        c.fillRect(x1, a.bottom - h, Math.max(1, x2 - x1), h);
+      }
+      c.restore();
+    }
+  };
   var bands = {
     id: 'bands',
     beforeDatasetsDraw: function (chart) {
@@ -55,11 +72,14 @@
     ] },
     options: { maintainAspectRatio: false, animation: false, parsing: false, plugins: { tooltip: tip },
       scales: Object.assign(scales('bpm'), { y2: { position: 'right', min: 80, max: 100, grid: { display: false }, display: pts('spo2').length > 0 } }) },
-    plugins: [bands]
+    plugins: [bands, stages]
   });
   new Chart(document.getElementById('chart-mov'), {
     type: 'bar',
-    data: { datasets: [{ label: 'Movement / intensity', data: pts('mov'), backgroundColor: '#8a78d6', borderWidth: 0, barThickness: 3 }] },
+    data: { datasets: [
+      { label: 'Watch movement / intensity', data: pts('mov'), backgroundColor: '#8a78d6', borderWidth: 0, barThickness: 3 },
+      { label: 'Phone movement (on the mattress)', data: pts('pm'), backgroundColor: '#46a585', borderWidth: 0, barThickness: 3 }
+    ] },
     options: { maintainAspectRatio: false, animation: false, parsing: false, plugins: { tooltip: tip }, scales: scales('movement') },
     plugins: [bands]
   });

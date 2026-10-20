@@ -39,7 +39,7 @@ class Night
     {
         $end = $s->ended_at ?? ($s->started_at + 86400);
         $rows = DB::table('samples')->where('device_id', $s->device_id)->whereBetween('ts', [$s->started_at, $end])
-            ->orderBy('ts')->get(['ts', 'heart_rate', 'movement', 'intensity', 'spo2', 'sleep_stage']);
+            ->orderBy('ts')->get(['ts', 'heart_rate', 'movement', 'intensity', 'spo2', 'sleep_stage', 'extra']);
         $step = max(1, (int) ceil($rows->count() / $max));
         $pts = [];
         foreach ($rows->chunk($step) as $chunk) {
@@ -48,12 +48,14 @@ class Night
 
                 return $v->isEmpty() ? null : round($v->avg(), 1);
             };
+            $pm = $chunk->map(fn ($r) => $r->extra ? (json_decode($r->extra, true)['pm'] ?? null) : null)->filter(fn ($x) => $x !== null);
             $pts[] = [
+                'pm' => $pm->isEmpty() ? null : round($pm->avg(), 2),
                 'ts' => $chunk->first()->ts,
                 'hr' => $avg('heart_rate'),
                 'mov' => $avg('movement') ?? $avg('intensity'),
                 'spo2' => $avg('spo2'),
-                'stage' => $chunk->first()->sleep_stage,
+                'stage' => $chunk->pluck('sleep_stage')->filter()->first(),
             ];
         }
 

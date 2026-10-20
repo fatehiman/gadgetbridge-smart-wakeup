@@ -19,7 +19,7 @@
 
 <div class="card">
     <h2>Heart rate and movement</h2>
-    <p class="small muted">Shaded band = wake window. Lines: session start/stop, wake trigger, acknowledgement. Times in {{ $tz }}.</p>
+    <p class="small muted">Shaded band = wake window. Colored strip at the bottom = the watch's own sleep stages (dark blue deep, light blue light, purple REM, orange awake), which arrive only after the night. Lines: session start/stop, wake trigger, acknowledgement. Times in {{ $tz }}.</p>
     <div class="chart-box"><canvas id="chart-hr"></canvas></div>
     <div class="chart-box short" style="margin-top:14px"><canvas id="chart-mov"></canvas></div>
     <script type="application/json" id="night-data">@json($chart)</script>

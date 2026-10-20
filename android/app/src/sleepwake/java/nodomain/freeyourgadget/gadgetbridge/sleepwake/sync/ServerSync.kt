@@ -132,7 +132,7 @@ class ServerSync(private val ctx: Context) {
         val device = DeviceAccess.device(ctx) ?: return
         val nowS = System.currentTimeMillis() / 1000
         val from = SyncPlan.sampleFrom(settings.uploadedSampleTs, nowS, SwSettings.SAMPLE_LOOKBACK_SECONDS)
-        val samples: List<Sample> = SampleReader.read(device, from, nowS)
+        val samples: List<Sample> = SampleReader.read(ctx, device, from, nowS)
         if (samples.isEmpty()) return
         var maxTs = settings.uploadedSampleTs
         for (batch in SyncPlan.batches(samples)) {
@@ -145,7 +145,7 @@ class ServerSync(private val ctx: Context) {
 
     private fun sampleJson(s: Sample) = mapOf(
         "ts" to s.ts, "heart_rate" to s.heartRate, "steps" to s.steps, "intensity" to s.intensity,
-        "movement" to s.movement, "spo2" to s.spo2, "sleep_stage" to s.sleepStage,
+        "movement" to s.movement, "spo2" to s.spo2, "sleep_stage" to s.sleepStage, "extra" to s.extra,
     )
 
     private fun post(payload: Map<String, Any?>) {

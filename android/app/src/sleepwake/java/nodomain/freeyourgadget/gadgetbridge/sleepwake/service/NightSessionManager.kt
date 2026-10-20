@@ -29,8 +29,6 @@ import java.util.UUID
 object NightSessionManager {
     private const val TAG = "SleepWake"
 
-    /** one attempt every 30 s: 60 attempts = 30 minutes, then the night is closed without an acknowledgement */
-    private const val MAX_WAKE_ATTEMPTS = 60
 
     /** The detector comes from the downloaded config (if any), else from the local numbers. */
     fun buildDetector(settings: SwSettings, mode: Mode): WakeDetector =
@@ -65,7 +63,7 @@ object NightSessionManager {
             deviceAddress = device?.address ?: "", wakeReason = null, wakeTs = null, ackedAt = null, uploaded = false,
         )
         store.insertSession(session)
-        val configured = device?.let { configureDevice(ctx, it) } ?: emptyMap()
+        val configured = (device?.let { configureDevice(ctx, it) } ?: emptyMap()) + ("notifications_silenced" to NotificationGate.quiet(ctx, device))
         store.addEvent(
             session.uuid, "session_started",
             mapOf(
@@ -115,6 +113,16 @@ object NightSessionManager {
         } catch (e: Exception) {
             applied["spo2_error"] = e.javaClass.simpleName
         }
+        try {
+            // stress is derived by the watch from heart-rate variability: one more signal that may follow the sleep stage
+            val prefs = GBApplication.getDevicePrefs(device)
+            val key = "heartrate_stress_monitoring"
+            prefs.preferences.edit().putBoolean(key, true).apply()
+            GBApplication.deviceService(device).onSendConfiguration(key)
+            applied["stress_monitoring"] = true
+        } catch (e: Exception) {
+            applied["stress_error"] = e.javaClass.simpleName
+        }
         return applied
     }
 
@@ -134,6 +142,7 @@ object NightSessionManager {
         val now = System.currentTimeMillis()
         val device = if (s.deviceAddress.isNotEmpty()) DeviceAccess.byAddress(s.deviceAddress) else null
         val watchReady = DeviceAccess.isReady(device)
+        NotificationGate.allowForWake(ctx, device) // the wake alert is a notification
         val finalReason = if (watchReady) reason else WakeReason.FALLBACK
         store.updateSession(s.uuid, mapOf("wake_reason" to finalReason.name, "wake_ts" to now / 1000))
         store.addEvent(
@@ -153,7 +162,7 @@ object NightSessionManager {
         val s = store.activeSession() ?: return
         if (s.wakeTs == null || s.ackedAt != null) return
         val n = getAttempts(ctx) + 1
-        if (n > MAX_WAKE_ATTEMPTS) { // nobody answered for 30 minutes: stop vibrating, close the night
+        if (System.currentTimeMillis() - (s.wakeTs ?: 0) * 1000 > WakeActuator.GIVE_UP_AFTER_MS) { // nobody answered for 30 minutes
             store.addEvent(s.uuid, "wake_gave_up", mapOf("attempts" to n - 1))
             SwAlarms.cancelRepeat(ctx)
             WakeActuator.stopAll(ctx, s.deviceAddress)
@@ -166,7 +175,7 @@ object NightSessionManager {
         if (n == 1 || n % 5 == 0 || r.phoneAlert) {
             store.addEvent(s.uuid, "wake_attempt", mapOf("n" to n, "watch" to r.watchSent, "phone" to r.phoneAlert))
         }
-        SwAlarms.scheduleRepeat(ctx, WakeActuator.REPEAT_MS)
+        SwAlarms.scheduleRepeat(ctx, SwSettings(ctx).wakeRepeatSec * 1000L)
     }
 
     /** "I'm awake": stop everything, close the session after a final fetch, ask for the morning rating. */
@@ -208,6 +217,7 @@ object NightSessionManager {
         store.addEvent(s.uuid, "session_stopped", mapOf("wake_reason" to (store.session(s.uuid)?.wakeReason)), now)
         SwAlarms.cancelAll(ctx)
         Notifier.cancelAll(ctx)
+        NotificationGate.restore(ctx) // the watch gets phone notifications again
         SyncScheduler.enqueueNow(ctx, delaySeconds = 30)
     }
 

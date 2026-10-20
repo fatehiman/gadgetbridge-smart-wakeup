@@ -38,6 +38,23 @@ object DeviceAccess {
         )
     }
 
+    /**
+     * Sends a notification to the watch: it vibrates once, without sound. Same call as the debug "send notification" screen.
+     * Needs app-notification forwarding on, see [NotificationGate].
+     */
+    fun notifyWatch(ctx: android.content.Context, d: GBDevice, attemptNo: Int) {
+        val spec = nodomain.freeyourgadget.gadgetbridge.model.NotificationSpec(
+            key = "sleepwake-wake-$attemptNo",
+            title = "Wake up",
+            body = "Time to wake up. Tap I'm awake on the phone.",
+            type = nodomain.freeyourgadget.gadgetbridge.model.NotificationType.GENERIC_ALARM_CLOCK,
+            sourceName = "SleepWake",
+            sourceAppId = ctx.packageName,
+            attachedActions = arrayListOf(),
+        )
+        GBApplication.deviceService(d).onNotification(spec)
+    }
+
     fun connect(d: GBDevice) {
         GBApplication.deviceService(d).connect()
     }

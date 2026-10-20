@@ -8,6 +8,14 @@
         <item>target</item>
         <item>deadline</item>
     </string-array>
+    <string-array name="sw_wake_method_names">
+        <item>Vibrating notification (silent, recommended)</item>
+        <item>Find watch (rings on the CMF watch)</item>
+    </string-array>
+    <string-array name="sw_wake_method_values">
+        <item>notification</item>
+        <item>find_watch</item>
+    </string-array>
     <string-array name="sw_fallback_names">
         <item>Phone vibration + notification</item>
         <item>Phone alarm sound</item>

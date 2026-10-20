@@ -34,7 +34,7 @@ data class SwEvent(val id: Long, val sessionUuid: String, val ts: Long, val type
  * All session state lives here, so every component can restore it after the process was killed.
  */
 class SleepWakeStore private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "sleepwake.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "sleepwake.db", null, 3) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -52,9 +52,61 @@ class SleepWakeStore private constructor(context: Context) :
         )
         db.execSQL("CREATE INDEX sw_event_session ON sw_event(session_uuid, ts)")
         db.execSQL("CREATE INDEX sw_event_uploaded ON sw_event(uploaded)")
+        createRaw(db)
+        createPhoneMotion(db)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+    private fun createPhoneMotion(db: SQLiteDatabase) {
+        // phone accelerometer, one row per minute
+        db.execSQL("CREATE TABLE IF NOT EXISTS sw_phonemotion (ts INTEGER PRIMARY KEY, sum REAL, peak REAL, moved INTEGER, n INTEGER)")
+    }
+
+    private fun createRaw(db: SQLiteDatabase) {
+        // the 16 bytes per activity record that the CMF driver does not understand (possible movement data)
+        db.execSQL("CREATE TABLE IF NOT EXISTS sw_rawact (ts INTEGER PRIMARY KEY, steps INTEGER, dist INTEGER, cal INTEGER, hex TEXT NOT NULL)")
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) createRaw(db)
+        if (oldVersion < 3) createPhoneMotion(db)
+    }
+
+    // ---- raw activity records ----
+
+    @Synchronized
+    fun putRawActivity(ts: Long, steps: Int, dist: Int, cal: Int, unknown: ByteArray) {
+        val cv = ContentValues().apply {
+            put("ts", ts); put("steps", steps); put("dist", dist); put("cal", cal)
+            put("hex", unknown.joinToString("") { "%02x".format(it) })
+        }
+        writableDatabase.insertWithOnConflict("sw_rawact", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    data class RawActivity(val ts: Long, val steps: Int, val dist: Int, val cal: Int, val hex: String)
+
+    @Synchronized
+    fun rawActivity(fromSec: Long, toSec: Long): List<RawActivity> =
+        readableDatabase.query("sw_rawact", null, "ts BETWEEN ? AND ?", arrayOf(fromSec.toString(), toSec.toString()), null, null, "ts")
+            .use { c -> buildList { while (c.moveToNext()) add(RawActivity(c.getLong(0), c.getInt(1), c.getInt(2), c.getInt(3), c.getString(4))) } }
+
+    @Synchronized
+    fun putPhoneMotion(ts: Long, sum: Double, peak: Double, moved: Int, n: Int) {
+        val cv = ContentValues().apply { put("ts", ts); put("sum", sum); put("peak", peak); put("moved", moved); put("n", n) }
+        writableDatabase.insertWithOnConflict("sw_phonemotion", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    data class PhoneMotionRow(val ts: Long, val sum: Double, val peak: Double, val moved: Int, val n: Int)
+
+    @Synchronized
+    fun phoneMotion(fromSec: Long, toSec: Long): List<PhoneMotionRow> =
+        readableDatabase.query("sw_phonemotion", null, "ts BETWEEN ? AND ?", arrayOf(fromSec.toString(), toSec.toString()), null, null, "ts")
+            .use { c -> buildList { while (c.moveToNext()) add(PhoneMotionRow(c.getLong(0), c.getDouble(1), c.getDouble(2), c.getInt(3), c.getInt(4))) } }
+
+    @Synchronized
+    fun pruneRaw(olderThanSec: Long) {
+        writableDatabase.delete("sw_rawact", "ts < ?", arrayOf(olderThanSec.toString()))
+        writableDatabase.delete("sw_phonemotion", "ts < ?", arrayOf(olderThanSec.toString()))
+    }
 
     // ---- sessions ----
 

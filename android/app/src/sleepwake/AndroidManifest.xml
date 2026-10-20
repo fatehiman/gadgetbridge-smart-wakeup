@@ -25,6 +25,12 @@
             android:exported="false"
             android:label="How do you feel?" />
 
+        <provider
+            android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.data.SwInitProvider"
+            android:authorities="${applicationId}.swinit"
+            android:exported="false"
+            android:initOrder="100" />
+
         <service
             android:name="nodomain.freeyourgadget.gadgetbridge.sleepwake.service.NightSessionService"
             android:exported="false"
