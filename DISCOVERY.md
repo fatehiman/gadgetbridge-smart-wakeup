@@ -109,3 +109,10 @@ Open: how long one notification buzz lasts, whether phone motion (accelerometer 
 - The activity records are **hourly running totals** of the day (steps, distance, calories) plus a few extra rows at each fetch, not minute movement. The first of the 16 unknown bytes is a counter that went 0, 1, 2, 3, 4, 5 for the hours 12:00–16:00 with walking: it looks like "hours with activity today". The other 15 bytes were zero.
 - Heart rate: one value every 5 minutes also in the daytime and while walking. SpO2: every 30 minutes. Stress: nothing (it was off).
 - So the watch gives no minute-level movement through this driver, day or night. Nothing live about sleep either: the sleep stages arrive only some time after waking (none 30 s after the owner woke; present about 1 hour later). Not yet known: exactly when the watch releases them, and whether a hidden command (`TRIGGER_SYNC`, unused upstream) can ask for them earlier.
+
+### Measured, second night (2026-10-20/21, first night with phone motion and stress)
+
+- **Stress** arrived (one value every 30 min, like SpO2). Stress, SpO2 and HR do **not** follow the watch stages: AUC light-vs-deep 0.46 / 0.50 / 0.50 (0.5 = chance).
+- **Phone motion** (phone on the bed): 464 minutes recorded. Most minutes are sensor noise (`pmn` = 0). 55 minutes had real movement. As a live feature ("any movement in the past 10 min") it gives AUC 0.60–0.62 for light/REM/awake vs deep. That is weak, but it is the only live signal above chance so far. Movement was not closer to deep→light changes than chance (22 % vs 21 %). One night only: it needs at least 5 nights before it counts.
+- The 16 raw activity bytes were all zero all night (101 records).
+- **The watch hypnogram is very regular**: about 7 min light, then 10–14 min deep, again and again. In the wake window 08:00–09:00, only 10–14 of 60 minutes were deep (both nights). So waking at any moment in the window is "not deep" about 80 % of the time by the watch's own label. A smart detector can only improve the last ~20 %.

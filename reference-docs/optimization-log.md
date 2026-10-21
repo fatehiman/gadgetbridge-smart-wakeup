@@ -20,3 +20,10 @@ Newest entry at the bottom. Format and rules: [../optimize-app.md](../optimize-a
 - Owner confirmed: the new wake alert buzzes once without sound.
 - Daytime data (walking 12:00–16:00) shows no minute-level movement from the watch: hourly totals only, HR every 5 min, SpO2 every 30 min. Conclusion: the live signals available are HR (flat across stages), SpO2, stress (from tonight), and the phone's accelerometer. Whether phone motion follows the watch stages is untested: tonight is the first test.
 - Website: night page now has a color legend with minutes per stage.
+
+## 2026-10-21 — night of 10-20 (nights with data: 2, with stages: 2)
+- Last night: woke at the window end 09:00 (DEADLINE, window 08:00–09:00), watch stage at 09:00 light. No rating yet. Night 1 rating (found in the session): 3, note "smart alarm didn't work!".
+- Data quality: good. 557 samples, 92 evaluations, latency median 0.1 min, p90 0.8 min, 1 fetch timeout. Stages again only after the night (0/193 fetches live).
+- Finding: HR, SpO2, stress = chance (AUC 0.46–0.50). Phone motion, past 10 min: AUC 0.60–0.62, the only live signal above chance (1 night). Raw bytes all zero. Watch stages alternate every 7–14 min; the window had 77–83 % non-deep minutes, so the deadline wake was already "light" on both nights. Room to improve on the proxy is small (~20 %).
+- Change: none (2 nights, section 4 allows no change).
+- Expectation / how to check tomorrow: phone motion AUC stays ≥ 0.6 over the next nights → add a `phone_motion` feature to `scored_v1` (Kotlin + Python) at night 5. If it falls to ~0.5, the honest end state is a plain alarm (see 8b). Need morning ratings + ease every night: they are the real judge, because the proxy wakes "light" ~80 % of the time anyway.
